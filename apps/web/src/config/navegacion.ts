@@ -2,6 +2,7 @@ import type { SvgIconComponent } from '@mui/icons-material';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
 import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
@@ -24,6 +25,7 @@ export interface ItemNavegacion {
  */
 export const navegacion: ItemNavegacion[] = [
   { titulo: 'Inicio', ruta: '/', Icono: HomeOutlinedIcon },
+  { titulo: 'Estadísticas', ruta: '/estadisticas', Icono: InsightsOutlinedIcon, permiso: 'estadisticas.ver' },
   { titulo: 'Vender', ruta: '/vender', Icono: PointOfSaleOutlinedIcon, permiso: 'ventas.registrar' },
   { titulo: 'Ventas', ruta: '/ventas', Icono: ReceiptLongOutlinedIcon, permiso: 'ventas.registrar' },
   { titulo: 'Caja', ruta: '/caja', Icono: AccountBalanceWalletOutlinedIcon, permiso: 'caja.operar' },

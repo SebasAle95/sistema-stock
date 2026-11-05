@@ -47,6 +47,8 @@ const permisos = {
   'caja.operar': ['administrador', 'vendedor'],
   /** Ver totales, efectivo esperado, diferencias e historial de cajas. */
   'caja.ver_totales': ['administrador'],
+  /** Dashboard de estadísticas: recaudación, ganancia, productos más vendidos, horarios pico. */
+  'estadisticas.ver': ['administrador'],
 } as const satisfies Record<string, readonly Rol[]>;
 
 export type Permiso = keyof typeof permisos;
