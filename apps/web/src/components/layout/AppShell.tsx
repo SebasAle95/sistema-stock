@@ -8,13 +8,44 @@ import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { negocio } from '@stock/shared';
+import { negocio, type ConfigNegocio } from '@stock/shared';
+import Image from 'next/image';
 import { useState, type ReactNode } from 'react';
 import { BotonTema } from './BotonTema';
 import { MenuNavegacion } from './MenuNavegacion';
 import { MenuUsuario } from './MenuUsuario';
 
 const ANCHO_MENU = 248;
+
+// Tipado como la interfaz: en otros negocios el logo puede no estar.
+const config: ConfigNegocio = negocio;
+
+/**
+ * Logo del negocio en la barra superior. Va sobre un recuadro blanco porque el
+ * PNG es transparente y sus colores se perderían sobre la barra de color.
+ * Sin logo configurado, se muestra un ícono genérico.
+ */
+function Marca() {
+  if (!config.logo) return <Inventory2OutlinedIcon sx={{ mr: 1.5 }} />;
+  return (
+    <Box
+      sx={{
+        position: 'relative',
+        width: 44,
+        height: 44,
+        mr: 1.5,
+        flexShrink: 0,
+        bgcolor: '#ffffff',
+        borderRadius: 2,
+        p: 0.5,
+      }}
+    >
+      <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+        <Image src={config.logo.src} alt={config.logo.alt} fill priority sizes="40px" style={{ objectFit: 'contain' }} />
+      </Box>
+    </Box>
+  );
+}
 
 /**
  * Estructura de todas las pantallas del panel: barra superior + menú lateral + contenido.
@@ -36,7 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <MenuIcon />
           </IconButton>
-          <Inventory2OutlinedIcon sx={{ mr: 1.5 }} />
+          <Marca />
           <Typography variant="h6" component="span" noWrap sx={{ flexGrow: 1, fontWeight: 700 }}>
             {negocio.nombre}
           </Typography>

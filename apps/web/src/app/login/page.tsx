@@ -1,17 +1,17 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { FormularioLogin } from '@/features/auth/FormularioLogin';
-import { PantallaCentrada } from '@/features/auth/PantallaCentrada';
+import { PantallaLogin } from '@/features/auth/PantallaLogin';
 
 export const metadata: Metadata = { title: 'Ingresar' };
 
 export default function PaginaLogin() {
   return (
-    <PantallaCentrada titulo="Ingresar" subtitulo="Usá el usuario que te dio el administrador.">
+    <PantallaLogin titulo="Iniciar sesión" subtitulo="Ingresá con tu usuario y tu contraseña.">
       {/* useSearchParams necesita un Suspense alrededor */}
       <Suspense>
         <FormularioLogin />
       </Suspense>
-    </PantallaCentrada>
+    </PantallaLogin>
   );
 }
