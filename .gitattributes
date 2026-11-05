@@ -1,0 +1,6 @@
+# Normaliza los finales de línea a LF en el repo (evita diffs falsos entre Windows y Linux)
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary

@@ -1,0 +1,42 @@
+{
+  "name": "@stock/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API REST del sistema de stock (Express + Drizzle + Postgres/Supabase).",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "usuarios:crear-admin": "tsx src/scripts/crearAdmin.ts",
+    "demo:cargar": "tsx src/scripts/demo.ts cargar",
+    "demo:borrar": "tsx src/scripts/demo.ts borrar"
+  },
+  "dependencies": {
+    "@stock/shared": "*",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.4",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.3",
+    "helmet": "^8.3.0",
+    "postgres": "^3.4.9",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.5",
+    "drizzle-kit": "^0.31.11",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.15"
+  }
+}

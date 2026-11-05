@@ -1,0 +1,33 @@
+{
+  "name": "sistema-stock",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Base reutilizable para sistemas de stock: frontend Next.js + Material UI, API Node + Express, Postgres (Supabase).",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c magenta,cyan \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev -w @stock/api",
+    "dev:web": "npm run dev -w @stock/web",
+    "build": "npm run build -w @stock/api && npm run build -w @stock/web",
+    "start:api": "npm run start -w @stock/api",
+    "start:web": "npm run start -w @stock/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "db:generate": "npm run db:generate -w @stock/api --",
+    "db:migrate": "npm run db:migrate -w @stock/api",
+    "db:studio": "npm run db:studio -w @stock/api",
+    "crear-admin": "npm run usuarios:crear-admin -w @stock/api --",
+    "demo:cargar": "npm run demo:cargar -w @stock/api",
+    "demo:borrar": "npm run demo:borrar -w @stock/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5",
+    "typescript": "~5.9.3"
+  }
+}

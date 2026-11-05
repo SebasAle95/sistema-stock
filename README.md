@@ -255,6 +255,23 @@ Los puertos son fijos y distintos de los habituales (3000/4000), para no chocar 
 | `npm run db:migrate` | Aplica las migraciones pendientes. |
 | `npm run db:studio` | Abre Drizzle Studio para ver y editar los datos. |
 | `npm run crear-admin` | Crea un administrador desde la terminal (la contraseña no se muestra al escribirla). |
+| `npm run demo:cargar` | Carga 30 días de actividad de ejemplo para conocer el sistema (ver abajo). |
+| `npm run demo:borrar` | Borra todo lo de ejemplo; tus usuarios y lo que cargaste vos quedan. |
+
+### Datos de ejemplo
+
+`npm run demo:cargar` llena todas las pantallas con un mes simulado de la cantina:
+
+- 18 productos en 4 categorías, con productos sin código y botones rápidos.
+- Stock inicial, reposiciones con número de remito, una merma y un ajuste por conteo.
+- Un turno de caja por día, con más ventas los fines de semana y a la noche.
+- Ventas en efectivo con vuelto, Mercado Pago y transferencia, y una venta anulada.
+- Salidas de efectivo y cierres justos, con faltante y con sobrante.
+- Dos productos sin stock, para ver la alerta.
+
+Crea el usuario `demo.vendedor` para entrar con el rol de vendedor; la contraseña se muestra una sola vez al cargar. Los productos de ejemplo usan códigos que empiezan con `20`, un rango reservado para uso interno, así que nunca coinciden con productos reales.
+
+**Antes de usar el sistema en serio, corré `npm run demo:borrar`.** Si vendiste o ingresaste algún producto de ejemplo, ese producto se conserva con el stock de tus propios movimientos, para que lo cuentes y lo ajustes.
 
 ---
 
