@@ -67,6 +67,30 @@ Los roles y permisos están en `packages/shared/src/auth/roles.ts`. Las pantalla
 | Supabase | Las tablas tienen RLS activado sin políticas: la API pública de Supabase no puede leerlas aunque se filtre la clave pública del proyecto. |
 | Respuestas | `Cache-Control: no-store` y los headers de seguridad de Helmet. La API nunca devuelve el hash de la contraseña. |
 
+### Qué puede hacer cada rol
+
+| Acción | Administrador | Vendedor |
+|---|:-:|:-:|
+| Vender (pistola, buscador, botones rápidos) | ✅ | ✅ |
+| Ver ventas | Todas | Solo las de la caja abierta |
+| Anular ventas (solo de la caja abierta, devuelve stock) | ✅ | ❌ |
+| Abrir caja, entradas/salidas de efectivo, cerrar caja | ✅ | ✅ (cierre ciego) |
+| Ver efectivo esperado, diferencias e historial de cajas | ✅ | ❌ |
+| Consultar productos, precios y stock | ✅ | ✅ |
+| Crear/editar productos, precios y categorías; ver costos | ✅ | ❌ |
+| Ingreso de mercadería | ✅ (con costo) | ✅ (sin costo) |
+| Ajustes de stock, mermas e historial de movimientos | ✅ | ❌ |
+| Estadísticas | ✅ | ❌ |
+| Gestionar usuarios | ✅ | ❌ |
+
+## Funcionalidades
+
+- **Productos y categorías:** al pasar la pistola, si el código existe se abre el producto; si no, se da de alta con el código precargado. Los productos sin código (café, sándwich) se buscan por nombre o como botón rápido, y pueden no llevar control de stock.
+- **Stock:** el stock nunca se edita a mano. Cada cambio (inicial, ingreso, venta, ajuste, merma, anulación) queda en `movimientos_stock` con quién y cuándo, en la misma transacción que actualiza el producto.
+- **Ventas:** carrito con la pistola, cobro por medio de pago y vuelto. Los precios los pone el servidor, y cada renglón guarda el precio y el costo del momento. Se puede vender un producto sin stock en el sistema (queda en negativo y se avisa).
+- **Caja:** una sola caja abierta a la vez. El cierre es ciego para el vendedor: carga lo contado y el administrador ve esperado, contado y diferencia.
+- **Estadísticas:** recaudación, ganancia y margen, ventas y ticket promedio contra el período anterior; recaudación por día, horarios pico, medios de pago y productos más vendidos. Todo en hora de Argentina, y cada gráfico tiene vista de tabla.
+
 En la web, `src/proxy.ts` redirige al login cuando no hay cookie. Es solo un filtro rápido: la validación real (sesión vigente, usuario activo, permisos) la hace la API en cada pedido.
 
 La web reenvía `/api/*` a la API (ver `apps/web/next.config.ts`). Para el navegador, web y API son el mismo sitio, así la cookie de sesión no es "de terceros". En producción hay que definir `API_URL` antes de `npm run build`.
