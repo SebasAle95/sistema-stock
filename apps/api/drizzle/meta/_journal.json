@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1793847186203,
+      "tag": "0000_usuarios_y_sesiones",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793849462288,
+      "tag": "0001_productos_y_stock",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793850538457,
+      "tag": "0002_ventas_y_caja",
+      "breakpoints": true
+    }
+  ]
+}

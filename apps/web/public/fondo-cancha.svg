@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <!-- Franjas del césped cortado -->
+  <g fill="#ffffff" fill-opacity="0.025">
+    <rect x="0" y="0" width="160" height="1000" />
+    <rect x="320" y="0" width="160" height="1000" />
+    <rect x="640" y="0" width="160" height="1000" />
+    <rect x="960" y="0" width="160" height="1000" />
+    <rect x="1280" y="0" width="160" height="1000" />
+  </g>
+
+  <!-- Líneas de una cancha de fútbol 5 vista desde arriba -->
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.13" stroke-width="4">
+    <rect x="100" y="80" width="1400" height="840" rx="4" />
+    <line x1="800" y1="80" x2="800" y2="920" />
+    <circle cx="800" cy="500" r="130" />
+
+    <!-- Áreas -->
+    <path d="M100 200 A240 240 0 0 1 340 440 L340 560 A240 240 0 0 1 100 800" />
+    <path d="M1500 200 A240 240 0 0 0 1260 440 L1260 560 A240 240 0 0 0 1500 800" />
+
+    <!-- Arcos -->
+    <rect x="66" y="440" width="34" height="120" />
+    <rect x="1500" y="440" width="34" height="120" />
+
+    <!-- Córners -->
+    <path d="M100 105 A25 25 0 0 0 125 80" />
+    <path d="M1475 80 A25 25 0 0 0 1500 105" />
+    <path d="M100 895 A25 25 0 0 1 125 920" />
+    <path d="M1475 920 A25 25 0 0 1 1500 895" />
+  </g>
+
+  <!-- Puntos: centro y penales -->
+  <g fill="#ffffff" fill-opacity="0.13">
+    <circle cx="800" cy="500" r="7" />
+    <circle cx="280" cy="500" r="6" />
+    <circle cx="1320" cy="500" r="6" />
+  </g>
+</svg>
