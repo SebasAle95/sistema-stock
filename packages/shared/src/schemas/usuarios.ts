@@ -31,9 +31,7 @@ export const esquemaRestablecerPassword = z.object({
   passwordTemporal: esquemaPasswordNueva,
 });
 
-export const esquemaIdUsuario = z.object({
-  id: z.uuid('Identificador inválido'),
-});
+export { esquemaId as esquemaIdUsuario } from './comunes';
 
 export type DatosCrearUsuario = z.infer<typeof esquemaCrearUsuario>;
 export type DatosEditarUsuario = z.infer<typeof esquemaEditarUsuario>;

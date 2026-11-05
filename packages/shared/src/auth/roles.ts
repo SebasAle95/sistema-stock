@@ -21,12 +21,16 @@ export const nombresDeRoles: Record<Rol, string> = {
 
 export const descripcionesDeRoles: Record<Rol, string> = {
   administrador: 'Acceso total: usuarios, caja, estadísticas y configuración.',
-  vendedor: 'Registra ventas. No ve la caja general ni las estadísticas.',
+  vendedor: 'Vende, consulta productos e ingresa mercadería. No ve costos, la caja general ni las estadísticas.',
 };
 
 /** Permiso → roles que lo tienen. Cada módulo nuevo suma sus permisos acá. */
 const permisos = {
   'usuarios.gestionar': ['administrador'],
+  /** Crear y editar productos, precios y categorías. */
+  'productos.gestionar': ['administrador'],
+  /** Ver precios de costo, márgenes y ganancias. */
+  'productos.ver_costos': ['administrador'],
 } as const satisfies Record<string, readonly Rol[]>;
 
 export type Permiso = keyof typeof permisos;
