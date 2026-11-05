@@ -11,7 +11,7 @@ Base para armar sistemas de stock y punto de venta. El frontend y la API están 
 
 ## Requisitos
 
-- **Node 22 LTS** (mínimo 20.19). Con versiones más viejas npm muestra avisos `EBADENGINE`.
+- **Node 22 LTS** o superior.
 - npm (viene con Node).
 
 ## Primeros pasos
@@ -22,8 +22,22 @@ npm install
 # Variables de entorno (estos archivos no se suben a git)
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env.local
+```
 
-# Levanta la API y la web juntas
+### Conectar la base de datos (Supabase)
+
+1. Crear el proyecto en Supabase y guardar la contraseña de la base. **No crear tablas a mano**: las crean las migraciones.
+2. Botón **Connect** → **Session pooler** → copiar la URI.
+3. Pegarla en `apps/api/.env` como `DATABASE_URL=...`, reemplazando `[YOUR-PASSWORD]`.
+4. Crear las tablas y el primer administrador:
+   ```bash
+   npm run db:migrate
+   npm run crear-admin
+   ```
+
+### Levantar el sistema
+
+```bash
 npm run dev
 ```
 
@@ -32,7 +46,30 @@ npm run dev
 
 Los puertos son fijos y distintos de los habituales (3000/4000) para no chocar con otros proyectos abiertos al mismo tiempo.
 
-Sin `DATABASE_URL`, la API arranca igual y la pantalla de inicio muestra la base como **"Sin configurar"**. Para conectarla, completá `DATABASE_URL` en `apps/api/.env` siguiendo las instrucciones de ese archivo.
+Sin `DATABASE_URL`, la API arranca igual y la pantalla de inicio muestra la base como **"Sin configurar"**, pero no se puede iniciar sesión.
+
+## Usuarios, roles y seguridad
+
+No hay registro público. El primer administrador se crea con `npm run crear-admin`. Desde la pantalla **Usuarios**, ese administrador crea a los demás con una contraseña temporal, y cada usuario la cambia en su primer ingreso.
+
+Los roles y permisos están en `packages/shared/src/auth/roles.ts`. Las pantallas y las rutas de la API se protegen por **permiso**, no por rol. Para sumar un rol nuevo alcanza con agregarlo ahí, asignarle permisos y generar una migración (el rol es un enum en la base).
+
+| Medida | Detalle |
+|---|---|
+| Contraseñas | Solo **bcrypt** (costo 12, configurable con `BCRYPT_COSTO`). Nunca MD5 ni SHA. Mínimo 8 caracteres, con letras y números. Si se sube el costo, los hashes se actualizan solos en el siguiente ingreso. |
+| Sesiones | Token aleatorio de 256 bits en una cookie `HttpOnly` + `SameSite=Lax` (`Secure` y prefijo `__Host-` en producción). En la base se guarda solo su SHA-256. Duran 12 h (`SESION_HORAS`) y se renuevan solas mientras se usen. |
+| Cerrar sesión | Borra la sesión en la base: la cookie deja de servir aunque alguien la haya copiado. |
+| Fuerza bruta | Bloqueo de la cuenta por 15 minutos después de 5 intentos fallidos, más un límite de 20 intentos fallidos cada 15 minutos por IP. |
+| Usuarios inexistentes | Mismo mensaje y mismo tiempo de respuesta que una contraseña incorrecta: no se puede averiguar qué usuarios existen. |
+| Cambios de cuenta | Al desactivar un usuario o restablecer su contraseña, se cierran sus sesiones en el momento. Al cambiar la propia contraseña, se cierran las demás sesiones. |
+| Protecciones del administrador | Nadie puede cambiarse su propio rol ni desactivarse a sí mismo, y siempre tiene que quedar al menos un administrador activo. |
+| CSRF | Cookie `SameSite=Lax`, y la API rechaza los pedidos que modifican datos si vienen de otro origen. |
+| Supabase | Las tablas tienen RLS activado sin políticas: la API pública de Supabase no puede leerlas aunque se filtre la clave pública del proyecto. |
+| Respuestas | `Cache-Control: no-store` y los headers de seguridad de Helmet. La API nunca devuelve el hash de la contraseña. |
+
+En la web, `src/proxy.ts` redirige al login cuando no hay cookie. Es solo un filtro rápido: la validación real (sesión vigente, usuario activo, permisos) la hace la API en cada pedido.
+
+La web reenvía `/api/*` a la API (ver `apps/web/next.config.ts`). Para el navegador, web y API son el mismo sitio, así la cookie de sesión no es "de terceros". En producción hay que definir `API_URL` antes de `npm run build`.
 
 ## Comandos
 
@@ -45,6 +82,7 @@ Sin `DATABASE_URL`, la API arranca igual y la pantalla de inicio muestra la base
 | `npm run db:generate` | Genera una migración SQL a partir de los cambios en el esquema |
 | `npm run db:migrate` | Aplica las migraciones pendientes en la base |
 | `npm run db:studio` | Abre Drizzle Studio para ver y editar los datos |
+| `npm run crear-admin` | Crea un usuario administrador (pide los datos; la contraseña no se muestra al escribirla) |
 
 ## Estructura
 
@@ -57,9 +95,12 @@ sistema-stock/
 │  │  │  ├─ db/
 │  │  │  │  ├─ client.ts            → conexión a Postgres (obtenerDb)
 │  │  │  │  └─ schema/              → tablas de Drizzle, un archivo por módulo
-│  │  │  ├─ middlewares/            → errores, 404, registro de solicitudes
+│  │  │  ├─ middlewares/            → sesión, permisos, seguridad, errores, 404
 │  │  │  ├─ modules/                → un módulo por funcionalidad
-│  │  │  │  └─ health/              → módulo de ejemplo
+│  │  │  │  ├─ auth/                → login, sesiones, contraseñas (bcrypt)
+│  │  │  │  ├─ usuarios/            → gestión de usuarios (administrador)
+│  │  │  │  └─ health/              → estado del sistema
+│  │  │  ├─ scripts/crearAdmin.ts   → alta del primer administrador
 │  │  │  ├─ shared/errors/          → AppError y atajos (noEncontrado, conflicto…)
 │  │  │  ├─ utils/                  → responder()
 │  │  │  ├─ routes.ts               → registro central de módulos
@@ -70,17 +111,22 @@ sistema-stock/
 │     └─ src/
 │        ├─ app/
 │        │  ├─ layout.tsx           → HTML base, fuente, tema
-│        │  └─ (panel)/             → pantallas con barra superior y menú
-│        ├─ components/layout/      → AppShell, menú lateral, botón de tema
-│        ├─ config/navegacion.ts    → ítems del menú lateral
-│        ├─ features/               → una carpeta por funcionalidad
+│        │  ├─ login/               → pantalla de ingreso
+│        │  ├─ cambiar-password/    → cambio de contraseña (obligatorio si es temporal)
+│        │  └─ (panel)/             → pantallas con sesión, barra superior y menú
+│        ├─ components/             → AppShell, menú lateral, menú de usuario, encabezados
+│        ├─ config/navegacion.ts    → ítems del menú lateral (con permiso opcional)
+│        ├─ features/               → una carpeta por funcionalidad (auth, usuarios…)
 │        ├─ lib/apiClient.ts        → único cliente para llamar a la API
+│        ├─ proxy.ts                → redirige al login si no hay sesión
 │        └─ theme/theme.ts          → tema de Material UI
 └─ packages/
    └─ shared/src/
+      ├─ auth/roles.ts              → ⭐ roles y permisos
       ├─ config/negocio.ts          → ⭐ configuración del negocio
-      ├─ types/                     → tipos compartidos (RespuestaApi, etc.)
-      └─ utils/formato.ts           → formatearMoneda, formatearFecha
+      ├─ schemas/                   → validaciones Zod (las usan web y API)
+      ├─ types/                     → tipos compartidos (RespuestaApi, Usuario…)
+      └─ utils/                     → formatos de moneda y fecha, errores de formularios
 ```
 
 ## Convenciones
@@ -110,7 +156,7 @@ En la web, `api.get / post / put / patch / delete` (de `lib/apiClient.ts`) devue
 
 Después:
 
-1. Se registra en `src/routes.ts`: `rutas.use('/productos', productosRoutes)`.
+1. Se registra en `src/routes.ts`: `rutas.use('/productos', productosRoutes)`. Todo lo que está debajo de `requiereSesion()` exige sesión. Para limitarlo a ciertos roles, se suma `requierePermiso('productos.gestionar')` en las rutas del módulo y el permiso nuevo en `roles.ts`.
 2. La tabla va en `src/db/schema/productos.ts` y se re-exporta desde `src/db/schema/index.ts`.
 3. `npm run db:generate` y luego `npm run db:migrate`.
 
@@ -127,8 +173,9 @@ No hace falta try/catch en los controllers: Express 5 manda los errores de funci
    rm -rf .git && git init
    ```
 2. Editar **`packages/shared/src/config/negocio.ts`**: nombre, moneda, zona horaria, medios de pago y colores.
-3. Completar los `.env` con la base de datos del nuevo sistema.
-4. `npm install && npm run dev`.
+3. Ajustar roles y permisos en **`packages/shared/src/auth/roles.ts`** si el negocio lo necesita.
+4. Completar los `.env` con la base de datos del nuevo sistema.
+5. `npm install`, `npm run db:migrate`, `npm run crear-admin` y `npm run dev`.
 
 ## Ramas
 

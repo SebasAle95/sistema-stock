@@ -8,6 +8,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { navegacion } from '@/config/navegacion';
+import { useSesion } from '@/features/auth/SesionProvider';
 
 function estaActiva(rutaActual: string, destino: string): boolean {
   return destino === '/' ? rutaActual === '/' : rutaActual.startsWith(destino);
@@ -15,13 +16,15 @@ function estaActiva(rutaActual: string, destino: string): boolean {
 
 export function MenuNavegacion({ alNavegar }: { alNavegar?: () => void }) {
   const rutaActual = usePathname();
+  const { tienePermiso } = useSesion();
+  const visibles = navegacion.filter((item) => !item.permiso || tienePermiso(item.permiso));
 
   return (
     <>
       {/* Espacio para que el menú empiece debajo de la barra superior */}
       <Toolbar />
       <List sx={{ px: 1 }}>
-        {navegacion.map(({ titulo, ruta, Icono }) => (
+        {visibles.map(({ titulo, ruta, Icono }) => (
           <ListItemButton
             key={ruta}
             component={Link}

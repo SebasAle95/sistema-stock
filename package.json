@@ -8,7 +8,7 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=20.9.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "dev": "concurrently -n api,web -c magenta,cyan \"npm:dev:api\" \"npm:dev:web\"",
@@ -19,9 +19,10 @@
     "start:web": "npm run start -w @stock/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
-    "db:generate": "npm run db:generate -w @stock/api",
+    "db:generate": "npm run db:generate -w @stock/api --",
     "db:migrate": "npm run db:migrate -w @stock/api",
-    "db:studio": "npm run db:studio -w @stock/api"
+    "db:studio": "npm run db:studio -w @stock/api",
+    "crear-admin": "npm run usuarios:crear-admin -w @stock/api --"
   },
   "devDependencies": {
     "concurrently": "^9.2.5",

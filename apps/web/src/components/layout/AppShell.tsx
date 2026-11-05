@@ -12,6 +12,7 @@ import { negocio } from '@stock/shared';
 import { useState, type ReactNode } from 'react';
 import { BotonTema } from './BotonTema';
 import { MenuNavegacion } from './MenuNavegacion';
+import { MenuUsuario } from './MenuUsuario';
 
 const ANCHO_MENU = 248;
 
@@ -40,6 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {negocio.nombre}
           </Typography>
           <BotonTema />
+          <MenuUsuario />
         </Toolbar>
       </AppBar>
 
