@@ -4,6 +4,7 @@ import { authRoutes } from './modules/auth/auth.routes';
 import { categoriasRoutes } from './modules/categorias/categorias.routes';
 import { healthRoutes } from './modules/health/health.routes';
 import { productosRoutes } from './modules/productos/productos.routes';
+import { stockRoutes } from './modules/stock/stock.routes';
 import { usuariosRoutes } from './modules/usuarios/usuarios.routes';
 
 /** Registro central de módulos. Cada módulo nuevo se suma con una línea. */
@@ -19,3 +20,4 @@ rutas.use(requiereSesion());
 rutas.use('/usuarios', usuariosRoutes);
 rutas.use('/categorias', categoriasRoutes);
 rutas.use('/productos', productosRoutes);
+rutas.use('/stock', stockRoutes);

@@ -5,6 +5,7 @@ import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import SearchIcon from '@mui/icons-material/Search';
+import TuneIcon from '@mui/icons-material/Tune';
 import Alert, { type AlertColor } from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -35,9 +36,11 @@ import {
   type Pagina,
   type Producto,
 } from '@stock/shared';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useRef, useState } from 'react';
 import { EncabezadoPagina } from '@/components/EncabezadoPagina';
 import { useSesion } from '@/features/auth/SesionProvider';
+import { DialogoAjusteStock } from '@/features/stock/DialogoAjusteStock';
 import { useConsulta } from '@/hooks/useConsulta';
 import { pareceCodigoDeBarras, useLectorCodigoBarras } from '@/hooks/useLectorCodigoBarras';
 import { useValorDiferido } from '@/hooks/useValorDiferido';
@@ -50,6 +53,7 @@ type Dialogo =
   | { tipo: 'crear'; codigo?: string }
   | { tipo: 'editar'; producto: Producto }
   | { tipo: 'categorias' }
+  | { tipo: 'ajustar'; producto: Producto }
   | null;
 
 interface Aviso {
@@ -63,12 +67,15 @@ export function PantallaProductos() {
   const { tienePermiso } = useSesion();
   const puedeGestionar = tienePermiso('productos.gestionar');
   const verCostos = tienePermiso('productos.ver_costos');
+  const puedeAjustar = tienePermiso('stock.ajustar');
+  const parametrosUrl = useSearchParams();
 
   const [textoBusqueda, setTextoBusqueda] = useState('');
   const buscar = useValorDiferido(textoBusqueda.trim(), 300);
   const [categoriaId, setCategoriaId] = useState('');
   const [estado, setEstado] = useState<EstadoFiltroProductos>('activos');
-  const [soloStockBajo, setSoloStockBajo] = useState(false);
+  // Desde la alerta de Inicio se llega con ?stockBajo=1.
+  const [soloStockBajo, setSoloStockBajo] = useState(parametrosUrl.get('stockBajo') === '1');
   const [pagina, setPagina] = useState(0);
   const [porPagina, setPorPagina] = useState(25);
   const [dialogo, setDialogo] = useState<Dialogo>(null);
@@ -292,7 +299,20 @@ export function PantallaProductos() {
                     <TableCell>{p.activo ? <Chip size="small" label="Activo" /> : <Chip size="small" label="Desactivado" />}</TableCell>
                   )}
                   {puedeGestionar && (
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                      {puedeAjustar && p.controlaStock && p.activo && (
+                        <Tooltip title="Ajustar stock o registrar merma">
+                          <IconButton
+                            aria-label={`Ajustar stock de ${p.nombre}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDialogo({ tipo: 'ajustar', producto: p });
+                            }}
+                          >
+                            <TuneIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                       <IconButton aria-label={`Editar ${p.nombre}`}>
                         <EditOutlinedIcon fontSize="small" />
                       </IconButton>
@@ -338,6 +358,17 @@ export function PantallaProductos() {
           alCrearCategoria={() => categorias.recargar()}
           alCerrar={cerrarDialogo}
           alGuardar={alGuardarProducto}
+        />
+      )}
+      {dialogo?.tipo === 'ajustar' && (
+        <DialogoAjusteStock
+          producto={dialogo.producto}
+          alCerrar={cerrarDialogo}
+          alGuardar={(mensaje) => {
+            cerrarDialogo();
+            setAviso({ severidad: 'success', mensaje });
+            productos.recargar();
+          }}
         />
       )}
       {dialogo?.tipo === 'categorias' && (

@@ -35,6 +35,25 @@ export interface Pagina<T> {
 export const TIPOS_MOVIMIENTO_STOCK = ['inicial', 'ingreso', 'ajuste', 'merma', 'venta', 'anulacion_venta'] as const;
 export type TipoMovimientoStock = (typeof TIPOS_MOVIMIENTO_STOCK)[number];
 
+export interface MovimientoStock {
+  id: string;
+  tipo: TipoMovimientoStock;
+  /** Positiva si entró mercadería, negativa si salió. */
+  cantidad: number;
+  stockResultante: number;
+  /** Solo viene si el usuario tiene el permiso `productos.ver_costos`. */
+  costoUnitario?: number | null;
+  nota: string | null;
+  producto: { id: string; nombre: string };
+  usuario: { id: string; nombre: string };
+  creadoEn: string;
+}
+
+export interface ResultadoIngresoStock {
+  productos: number;
+  unidades: number;
+}
+
 export const nombresDeMovimientos: Record<TipoMovimientoStock, string> = {
   inicial: 'Stock inicial',
   ingreso: 'Ingreso de mercadería',

@@ -31,6 +31,12 @@ const permisos = {
   'productos.gestionar': ['administrador'],
   /** Ver precios de costo, márgenes y ganancias. */
   'productos.ver_costos': ['administrador'],
+  /** Cargar la mercadería que llega (sumar stock). */
+  'stock.ingresar': ['administrador', 'vendedor'],
+  /** Corregir el stock contado y registrar mermas (vencidos, rotos). */
+  'stock.ajustar': ['administrador'],
+  /** Ver el historial de movimientos de stock. */
+  'stock.ver_historial': ['administrador'],
 } as const satisfies Record<string, readonly Rol[]>;
 
 export type Permiso = keyof typeof permisos;

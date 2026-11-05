@@ -1,3 +1,5 @@
+import './schemas/idioma';
+
 export * from './auth/roles';
 export * from './auth/sesion';
 export * from './config/negocio';
@@ -5,6 +7,7 @@ export * from './schemas/auth';
 export * from './schemas/categorias';
 export * from './schemas/comunes';
 export * from './schemas/productos';
+export * from './schemas/stock';
 export * from './schemas/usuarios';
 export * from './types/api';
 export * from './types/productos';
