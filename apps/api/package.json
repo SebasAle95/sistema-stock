@@ -12,7 +12,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "usuarios:crear-admin": "tsx src/scripts/crearAdmin.ts"
+    "usuarios:crear-admin": "tsx src/scripts/crearAdmin.ts",
+    "demo:cargar": "tsx src/scripts/demo.ts cargar",
+    "demo:borrar": "tsx src/scripts/demo.ts borrar"
   },
   "dependencies": {
     "@stock/shared": "*",
