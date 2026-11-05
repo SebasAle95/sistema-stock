@@ -8,5 +8,7 @@
  *   npm run db:generate   → crea el archivo de migración SQL en apps/api/drizzle
  *   npm run db:migrate    → aplica las migraciones pendientes en la base
  */
+export * from './columnas';
 export * from './productos';
 export * from './usuarios';
+export * from './ventas';

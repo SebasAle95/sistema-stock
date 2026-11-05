@@ -21,6 +21,23 @@ export const esquemaDinero = (mensajeRequerido: string) =>
     .max(MAX_DINERO, 'Es demasiado alto')
     .transform((valor) => Math.round(valor * 100) / 100);
 
+/** Fecha "AAAA-MM-DD" (como la devuelve un input de tipo fecha). */
+export const esquemaFecha = z.iso.date('Fecha inválida');
+
+/** Filtro por rango de días (inclusive), en la zona horaria del negocio. */
+export const esquemaRangoFechas = z.object({
+  desde: esquemaFecha.optional(),
+  hasta: esquemaFecha.optional(),
+});
+
+/** Texto obligatorio corto: motivos, notas. */
+export const esquemaMotivo = (mensajeRequerido: string) =>
+  z
+    .string({ error: mensajeRequerido })
+    .trim()
+    .min(3, mensajeRequerido)
+    .max(200, 'Puede tener hasta 200 caracteres');
+
 /** Cantidad entera no negativa (unidades de stock). */
 export const esquemaCantidad = (mensajeRequerido: string) =>
   z

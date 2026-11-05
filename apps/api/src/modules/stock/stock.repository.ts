@@ -1,7 +1,8 @@
-import { negocio, normalizarParaBusqueda, type FiltrosMovimientos } from '@stock/shared';
+import { normalizarParaBusqueda, type FiltrosMovimientos } from '@stock/shared';
 import { and, desc, eq, getTableColumns, inArray, like, sql, type SQL } from 'drizzle-orm';
 import { obtenerDb } from '../../db/client';
 import { movimientosStock, productos, usuarios } from '../../db/schema';
+import { entreFechas } from '../../utils/fechas';
 
 interface ItemIngreso {
   productoId: string;
@@ -9,16 +10,10 @@ interface ItemIngreso {
   costoUnitario: number | null;
 }
 
-/** Inicio del día `fecha` (AAAA-MM-DD) en la zona horaria del negocio. */
-const inicioDelDia = (fecha: string) => sql`(${fecha}::date)::timestamp at time zone ${negocio.zonaHoraria}`;
-const inicioDelDiaSiguiente = (fecha: string) =>
-  sql`(${fecha}::date + 1)::timestamp at time zone ${negocio.zonaHoraria}`;
-
 function condicionesMovimientos(filtros: FiltrosMovimientos): SQL | undefined {
   const lista: (SQL | undefined)[] = [];
   if (filtros.tipo) lista.push(eq(movimientosStock.tipo, filtros.tipo));
-  if (filtros.desde) lista.push(sql`${movimientosStock.creadoEn} >= ${inicioDelDia(filtros.desde)}`);
-  if (filtros.hasta) lista.push(sql`${movimientosStock.creadoEn} < ${inicioDelDiaSiguiente(filtros.hasta)}`);
+  lista.push(...entreFechas(movimientosStock.creadoEn, filtros));
   if (filtros.buscar) {
     const palabras = normalizarParaBusqueda(filtros.buscar).split(' ').filter(Boolean);
     lista.push(...palabras.map((p) => like(productos.nombreBusqueda, `%${p.replace(/[\\%_]/g, (c) => `\\${c}`)}%`)));

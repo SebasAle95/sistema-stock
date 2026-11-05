@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TIPOS_MOVIMIENTO_STOCK } from '../types/productos';
-import { esquemaCantidad, esquemaDinero, esquemaPaginacion } from './comunes';
+import { esquemaCantidad, esquemaDinero, esquemaPaginacion, esquemaRangoFechas } from './comunes';
 
 const esquemaCantidadPositiva = esquemaCantidad('Ingresá la cantidad').refine((n) => n > 0, 'Tiene que ser al menos 1');
 const esquemaNota = z.string().trim().max(200, 'Puede tener hasta 200 caracteres');
@@ -52,16 +52,10 @@ export const esquemaAjusteStock = z.discriminatedUnion('tipo', [
   }),
 ]);
 
-/** Fecha "AAAA-MM-DD" (como la devuelve un input de tipo fecha). */
-const esquemaFecha = z.iso.date('Fecha inválida');
-
-export const esquemaFiltrosMovimientos = esquemaPaginacion.extend({
+export const esquemaFiltrosMovimientos = esquemaPaginacion.extend(esquemaRangoFechas.shape).extend({
   /** Busca por nombre del producto. */
   buscar: z.string().trim().max(100).optional(),
   tipo: z.enum(TIPOS_MOVIMIENTO_STOCK).optional(),
-  /** Rango de días (inclusive), en la zona horaria del negocio. */
-  desde: esquemaFecha.optional(),
-  hasta: esquemaFecha.optional(),
 });
 
 export type DatosIngresoStock = z.infer<typeof esquemaIngresoStock>;

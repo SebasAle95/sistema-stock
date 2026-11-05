@@ -1,22 +1,9 @@
 import { TIPOS_MOVIMIENTO_STOCK } from '@stock/shared';
 import { sql } from 'drizzle-orm';
-import {
-  boolean,
-  index,
-  integer,
-  numeric,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-  uuid,
-} from 'drizzle-orm/pg-core';
+import { boolean, index, integer, pgEnum, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { dinero, fecha } from './columnas';
 import { usuarios } from './usuarios';
-
-const fecha = () => timestamp({ withTimezone: true });
-/** Importes con 2 decimales exactos (numeric, no float). En TypeScript llegan como number. */
-export const dinero = () => numeric({ precision: 12, scale: 2, mode: 'number' });
+import { ventas } from './ventas';
 
 export const categorias = pgTable(
   'categorias',
@@ -83,7 +70,7 @@ export const movimientosStock = pgTable(
     costoUnitario: dinero(),
     nota: text(),
     /** Venta que originó el movimiento, si corresponde. */
-    ventaId: uuid(),
+    ventaId: uuid().references(() => ventas.id, { onDelete: 'restrict' }),
     usuarioId: uuid()
       .notNull()
       .references(() => usuarios.id, { onDelete: 'restrict' }),

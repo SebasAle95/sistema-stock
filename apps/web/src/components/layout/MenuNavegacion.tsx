@@ -10,14 +10,19 @@ import { usePathname } from 'next/navigation';
 import { navegacion } from '@/config/navegacion';
 import { useSesion } from '@/features/auth/SesionProvider';
 
-function estaActiva(rutaActual: string, destino: string): boolean {
-  return destino === '/' ? rutaActual === '/' : rutaActual.startsWith(destino);
+function coincide(rutaActual: string, destino: string): boolean {
+  return destino === '/' ? rutaActual === '/' : rutaActual === destino || rutaActual.startsWith(`${destino}/`);
 }
 
 export function MenuNavegacion({ alNavegar }: { alNavegar?: () => void }) {
   const rutaActual = usePathname();
   const { tienePermiso } = useSesion();
   const visibles = navegacion.filter((item) => !item.permiso || tienePermiso(item.permiso));
+  // Si varias coinciden (/caja y /caja/historial), queda marcada la más específica.
+  const activa = visibles
+    .filter((item) => coincide(rutaActual, item.ruta))
+    .sort((a, b) => b.ruta.length - a.ruta.length)[0]?.ruta;
+  const estaActiva = (_: string, destino: string) => destino === activa;
 
   return (
     <>

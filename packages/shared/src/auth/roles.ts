@@ -37,6 +37,16 @@ const permisos = {
   'stock.ajustar': ['administrador'],
   /** Ver el historial de movimientos de stock. */
   'stock.ver_historial': ['administrador'],
+  /** Usar la pantalla de venta. */
+  'ventas.registrar': ['administrador', 'vendedor'],
+  /** Anular ventas (devuelve el stock). */
+  'ventas.anular': ['administrador'],
+  /** Ver ventas de todas las cajas (el vendedor solo ve las de la caja abierta). */
+  'ventas.ver_todas': ['administrador'],
+  /** Abrir caja, registrar ingresos/egresos de efectivo y cerrarla (cierre ciego). */
+  'caja.operar': ['administrador', 'vendedor'],
+  /** Ver totales, efectivo esperado, diferencias e historial de cajas. */
+  'caja.ver_totales': ['administrador'],
 } as const satisfies Record<string, readonly Rol[]>;
 
 export type Permiso = keyof typeof permisos;
