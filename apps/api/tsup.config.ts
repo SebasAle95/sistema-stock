@@ -1,7 +1,13 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  // Además de la API, los scripts que hacen falta en producción (sin tsx ni drizzle-kit):
+  // dist/migrar.js y dist/crear-admin.js.
+  entry: {
+    index: 'src/index.ts',
+    migrar: 'src/scripts/migrar.ts',
+    'crear-admin': 'src/scripts/crearAdmin.ts',
+  },
   format: ['esm'],
   platform: 'node',
   target: 'node22',

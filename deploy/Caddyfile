@@ -1,0 +1,45 @@
+# Entrada de producción, detrás del portero de la oficina (HAProxy en apps01), que pasa el HTTPS
+# sin abrirlo. Caddy tiene el certificado de DOMINIO (Let's Encrypt), manda /api/* a la API y el
+# resto a la web (Next.js).
+{
+	servers :443 {
+		# El portero antepone la IP del visitante (PROXY protocol) antes del saludo TLS.
+		# Solo se acepta desde el loopback o la red de Docker: el puerto se publica en 127.0.0.1.
+		listener_wrappers {
+			proxy_protocol {
+				timeout 5s
+				allow 127.0.0.0/8 172.16.0.0/12
+			}
+			tls
+		}
+		# HTTP/3 va por UDP, que el portero no maneja.
+		protocols h1 h2
+	}
+}
+
+{$DOMINIO} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "same-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	# La API conserva el path /api y el Host original. Caddy agrega X-Forwarded-For con la IP real.
+	handle /api/* {
+		reverse_proxy api:4100
+	}
+
+	handle {
+		reverse_proxy web:3100
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

@@ -185,6 +185,8 @@ Las tablas se crean **solo con migraciones** (`apps/api/drizzle/`), nunca a mano
 
 ## Instalación y puesta en marcha
 
+Esta sección es para desarrollo, en una compu. Para el servidor (Docker, HTTPS, https://stock.hardhouse.com.ar), ver [docs/despliegue.md](docs/despliegue.md).
+
 ### Requisitos
 
 - **Node 22 LTS** o superior, con npm.
