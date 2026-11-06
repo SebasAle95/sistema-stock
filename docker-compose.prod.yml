@@ -1,0 +1,80 @@
+# Producción (docs/despliegue.md). Caddy publica solo en el loopback de la VM: el portero de la
+# oficina (HAProxy, proyecto aparte en /opt/hhsg/deploy/portero) le pasa el tráfico de 80/443.
+# La base está en Supabase (DATABASE_URL); la API y la web solo existen en la red interna.
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d --build --wait
+name: stock
+
+x-api-build: &api-build
+  context: .
+  dockerfile: apps/api/Dockerfile
+
+services:
+  # Aplica las migraciones pendientes en cada despliegue y termina. La API espera a que salga bien.
+  migrate:
+    build: *api-build
+    image: stock-api
+    command: ["node", "dist/migrar.js"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?definí DATABASE_URL en .env}
+    restart: "no"
+
+  api:
+    build: *api-build
+    image: stock-api
+    environment:
+      NODE_ENV: production
+      PORT: 4100
+      DATABASE_URL: ${DATABASE_URL:?definí DATABASE_URL en .env}
+      CORS_ORIGIN: https://${DOMINIO:?definí DOMINIO en .env}
+      # Un solo proxy adelante (Caddy), que pone la IP real del visitante en X-Forwarded-For.
+      TRUST_PROXY: "1"
+      SESION_HORAS: ${SESION_HORAS:-12}
+      BCRYPT_COSTO: ${BCRYPT_COSTO:-12}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4100/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: stock-web
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/login').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.11.6-alpine
+    environment:
+      DOMINIO: ${DOMINIO:?definí DOMINIO en .env}
+    # Puertos distintos de los de HHSG (8080 y 8443), y solo en 127.0.0.1: entra por el portero.
+    ports:
+      - "127.0.0.1:8081:80"
+      - "127.0.0.1:8444:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:
