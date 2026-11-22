@@ -6,6 +6,8 @@ import { errores } from '../shared/errors/AppError';
 import * as schema from './schema';
 
 export type BaseDeDatos = PostgresJsDatabase<typeof schema>;
+/** Lo que recibe la función de obtenerDb().transaction(). */
+export type Transaccion = Parameters<Parameters<BaseDeDatos['transaction']>[0]>[0];
 
 /**
  * La conexión se crea solo si hay DATABASE_URL, así la API puede arrancar

@@ -9,7 +9,7 @@ export const esquemaCodigoBarras = z
   .regex(/^[0-9A-Za-z._-]*$/, 'Solo números, letras, punto, guion y guion bajo');
 
 /** Código opcional: vacío o null se guarda como "sin código". */
-const esquemaCodigoOpcional = esquemaCodigoBarras.nullable().transform((valor) => (valor ? valor : null));
+export const esquemaCodigoOpcional = esquemaCodigoBarras.nullable().transform((valor) => (valor ? valor : null));
 
 const esquemaNombreProducto = z
   .string()

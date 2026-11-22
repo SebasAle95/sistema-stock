@@ -5,6 +5,8 @@
 export const FUNCIONALIDADES = [
   /** Productos con talles y colores, cada combinación con su stock y su código (indumentaria). */
   'variantes',
+  /** Impresión de etiquetas con código de barras, y códigos internos para lo que no trae. */
+  'etiquetas',
   /** Cambios y devoluciones de productos vendidos, con vuelta al stock. */
   'devoluciones',
 ] as const;
@@ -53,5 +55,16 @@ export interface ConfigNegocio {
    * - "boutique": fondos claros y planos, títulos con serifa y login a pantalla partida (moda, tiendas).
    */
   estilo?: 'clasico' | 'boutique';
+  /** Ejemplos que se muestran al cargar productos, para que suenen al rubro del negocio. */
+  ejemplos: {
+    /** Nombre de producto de ejemplo, debajo del campo Nombre. */
+    producto: string;
+    /** Categoría de ejemplo, en el alta de categorías. */
+    categoria: string;
+    /** Explicación de los productos sin control de stock. */
+    sinStock: string;
+    /** Explicación del botón rápido en la pantalla de venta. */
+    botonRapido: string;
+  };
   funcionalidades: readonly Funcionalidad[];
 }

@@ -373,7 +373,7 @@ No hace falta try/catch en los controllers: Express 5 manda los errores de funci
 
 El mismo sistema sirve a varios negocios, cada uno con su marca, su base de datos y su instalación. Hoy son **La Frontera Fútbol 5** (cantina) y **Bella Esencia** (indumentaria). Cuál se compila lo decide la variable `CLIENTE`; sin ella es La Frontera.
 
-- **Configuración de cada cliente:** [`packages/shared/src/config/clientes/`](packages/shared/src/config/clientes/): nombre, lema, logo, colores, medios de pago, zona horaria y funcionalidades.
+- **Configuración de cada cliente:** [`packages/shared/src/config/clientes/`](packages/shared/src/config/clientes/): nombre, lema, logo, colores, medios de pago, zona horaria, ejemplos del rubro y funcionalidades.
 - **Imágenes:** `apps/web/public/clientes/<id>/`.
 - **Funcionalidades por cliente** (por ejemplo, talles y colores solo para indumentaria): apagadas, no aparecen en el menú y la API no registra sus rutas.
 - **Cómo sumar y desplegar un cliente:** [docs/clientes.md](docs/clientes.md).

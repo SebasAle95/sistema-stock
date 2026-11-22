@@ -21,7 +21,7 @@ La configuración de cada uno está en [`packages/shared/src/config/clientes/`](
 | Cliente | `CLIENTE` | Dominio | Instalación | Puertos (HTTP/HTTPS) | Funcionalidades extra |
 |---|---|---|---|---|---|
 | La Frontera Fútbol 5 (cantina) | `la-frontera` | stock.hardhouse.com.ar | `/opt/stock` · proyecto `stock` | 8081 / 8444 | — |
-| Bella Esencia (indumentaria) | `bella-esencia` | a definir | `/opt/stock-bella-esencia` · proyecto `stock-bella-esencia` | 8082 / 8445 | `variantes`, `devoluciones` |
+| Bella Esencia (indumentaria) | `bella-esencia` | a definir | `/opt/stock-bella-esencia` · proyecto `stock-bella-esencia` | 8082 / 8445 | `variantes`, `etiquetas`, `devoluciones` |
 
 Al sumar un cliente, agregalo a esta tabla con puertos que no use nadie.
 
@@ -31,8 +31,21 @@ Se prenden en la configuración del cliente (`funcionalidades: [...]`). Apagadas
 
 | Funcionalidad | Qué agrega |
 |---|---|
-| `variantes` | Productos con talles y colores: cada combinación con su stock y su código de barras (indumentaria). |
+| `variantes` | Productos con talles y colores: cada combinación con su stock y su código de barras (indumentaria). Ver abajo. |
+| `etiquetas` | Pantalla para imprimir etiquetas con código de barras (hoja A4 de 24 o rollo de 50 × 25 mm) y códigos internos para lo que no trae. |
 | `devoluciones` | Cambios y devoluciones de lo vendido, con vuelta al stock. |
+
+### Talles y colores (`variantes`)
+
+- Un **modelo** ("Jean mom") agrupa sus combinaciones. Cada combinación de talle y color es un producto común, con su stock, su precio y su código: "Jean mom · Celeste · 38". Por eso la venta, el ingreso de mercadería, los ajustes, la caja y las estadísticas funcionan igual que con cualquier producto.
+- **Nuevo modelo** carga la curva completa de una vez: nombre, precio, los talles y colores, y el stock de cada combinación en una grilla.
+- El modelo tiene precio, costo y stock mínimo: las combinaciones nuevas salen con esos valores, y **Editar modelo** los cambia en todas. Una combinación puede tener un precio propio (se edita tocándola en la curva).
+- El nombre y la categoría de una combinación vienen siempre del modelo; la API rechaza cambiarlos por separado.
+- En Productos, **Por modelo** muestra un renglón por modelo y al tocarlo se abre su curva: el stock por talle y color, con totales.
+
+### Códigos internos
+
+Las combinaciones sin código de fábrica, y lo que se etiquete desde la pantalla Etiquetas, reciben un **EAN-13 que empieza con 21**. Los prefijos 20 a 29 están reservados para uso interno de cada comercio, así que nunca coinciden con el código de un producto de fábrica. Salen de la secuencia `codigos_internos_seq` de la base: no se repiten aunque dos personas carguen al mismo tiempo.
 
 **Para agregar una funcionalidad nueva:**
 
@@ -55,6 +68,7 @@ Se prenden en la configuración del cliente (`funcionalidades: [...]`). Apagadas
    - `mediosDePago`: tiene que incluir `efectivo`, porque la caja calcula el efectivo esperado con él.
    - `tema.primario`: el texto blanco encima tiene que leerse (contraste de 4,5:1 o más). `tema.secundario` es el acento.
    - `estilo`: `clasico` (barra de color, login con fondo de la marca, como La Frontera) o `boutique` (fondos claros y planos, títulos con serifa y login a pantalla partida, como Bella Esencia). Son las mismas pantallas con otra estética.
+   - `ejemplos`: los textos de ayuda al cargar productos (un producto, una categoría, qué es "sin control de stock" y "botón rápido"), para que suenen al rubro.
    - `funcionalidades`: las que correspondan.
 2. **Registrarlo** en `packages/shared/src/config/clientes/index.ts`.
 3. **Imágenes** en `apps/web/public/clientes/<id>/`: el logo, preferentemente PNG con fondo transparente o SVG, y si querés una imagen de fondo para el login (`fondoLogin`).

@@ -19,6 +19,7 @@ import {
   esquemaEditarProducto,
   formatearMoneda,
   formatearPorcentaje,
+  negocio,
   parsearNumero,
   type Categoria,
   type ErroresDeCampos,
@@ -43,7 +44,7 @@ interface Props {
 const texto = (valor: number | null | undefined) => (valor === null || valor === undefined ? '' : String(valor));
 
 /** Muestra cuánto se gana por unidad, si hay costo y precio. */
-function Ganancia({ venta, costo }: { venta: number | null; costo: number | null }) {
+export function Ganancia({ venta, costo }: { venta: number | null; costo: number | null }) {
   if (venta === null || costo === null || Number.isNaN(venta) || Number.isNaN(costo)) return null;
   const ganancia = venta - costo;
   const sobreCosto = costo > 0 ? ` (${formatearPorcentaje(ganancia / costo)} sobre el costo)` : '';
@@ -56,6 +57,8 @@ function Ganancia({ venta, costo }: { venta: number | null; costo: number | null
 
 export function DialogoProducto({ producto, codigoInicial, categorias, alCrearCategoria, alCerrar, alGuardar }: Props) {
   const editando = Boolean(producto);
+  /** Combinación de talle y color: el nombre y la categoría vienen del modelo. */
+  const esCombinacion = Boolean(producto?.modelo);
   const refNombre = useRef<HTMLInputElement>(null);
 
   const [valores, setValores] = useState({
@@ -132,7 +135,7 @@ export function DialogoProducto({ producto, codigoInicial, categorias, alCrearCa
   return (
     <Dialog open onClose={enviando ? undefined : alCerrar} fullWidth maxWidth="sm">
       <Box component="form" noValidate onSubmit={enviar}>
-        <DialogTitle>{editando ? 'Editar producto' : 'Nuevo producto'}</DialogTitle>
+        <DialogTitle>{esCombinacion ? 'Editar combinación' : editando ? 'Editar producto' : 'Nuevo producto'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2.5} sx={{ pt: 1 }}>
             {mensaje && <Alert severity="error">{mensaje}</Alert>}
@@ -154,7 +157,12 @@ export function DialogoProducto({ producto, codigoInicial, categorias, alCrearCa
                 }
               }}
               error={Boolean(errores.codigoBarras)}
-              helperText={errores.codigoBarras ?? 'Escaneá el producto o escribí el código. Puede quedar vacío.'}
+              helperText={
+                errores.codigoBarras ??
+                (esCombinacion
+                  ? 'El de su etiqueta. Si la prenda trae código de fábrica, podés escanearlo acá.'
+                  : 'Escaneá el producto o escribí el código. Puede quedar vacío.')
+              }
               slotProps={{ htmlInput: { spellCheck: false, style: { fontFamily: 'ui-monospace, Consolas, monospace' } } }}
             />
 
@@ -162,20 +170,28 @@ export function DialogoProducto({ producto, codigoInicial, categorias, alCrearCa
               label="Nombre"
               fullWidth
               inputRef={refNombre}
-              autoFocus={Boolean(codigoInicial) || editando}
+              autoFocus={Boolean(codigoInicial) || (editando && !esCombinacion)}
+              disabled={esCombinacion}
               value={valores.nombre}
               onChange={(e) => cambiar('nombre', e.target.value)}
               error={Boolean(errores.nombre)}
-              helperText={errores.nombre ?? 'Por ejemplo: Coca-Cola 500 ml'}
+              helperText={
+                errores.nombre ??
+                (esCombinacion
+                  ? 'Sale del modelo, el color y el talle. El nombre y la categoría se cambian desde el modelo.'
+                  : `Por ejemplo: ${negocio.ejemplos.producto}`)
+              }
             />
 
-            <SelectorCategoria
-              categorias={categorias}
-              valor={valores.categoriaId}
-              alCambiar={(id) => cambiar('categoriaId', id)}
-              alCrear={alCrearCategoria}
-              error={errores.categoriaId}
-            />
+            {!esCombinacion && (
+              <SelectorCategoria
+                categorias={categorias}
+                valor={valores.categoriaId}
+                alCambiar={(id) => cambiar('categoriaId', id)}
+                alCrear={alCrearCategoria}
+                error={errores.categoriaId}
+              />
+            )}
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <CampoDinero
@@ -184,7 +200,7 @@ export function DialogoProducto({ producto, codigoInicial, categorias, alCrearCa
                 valor={valores.precioVenta}
                 alCambiar={(v) => cambiar('precioVenta', v)}
                 error={Boolean(errores.precioVenta)}
-                helperText={errores.precioVenta}
+                helperText={errores.precioVenta ?? (esCombinacion ? 'Solo de esta combinación.' : undefined)}
               />
               <CampoDinero
                 label="Precio de costo"
@@ -197,17 +213,17 @@ export function DialogoProducto({ producto, codigoInicial, categorias, alCrearCa
             </Stack>
             <Ganancia venta={numeros.precioVenta} costo={numeros.precioCosto} />
 
-            <Box>
-              <FormControlLabel
-                control={<Switch checked={valores.controlaStock} onChange={(e) => cambiar('controlaStock', e.target.checked)} />}
-                label="Controlar stock"
-              />
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {valores.controlaStock
-                  ? 'Se cuentan las unidades y avisa cuando quedan pocas.'
-                  : 'Para lo que se prepara en el momento (café, sándwich): no lleva stock.'}
-              </Typography>
-            </Box>
+            {!esCombinacion && (
+              <Box>
+                <FormControlLabel
+                  control={<Switch checked={valores.controlaStock} onChange={(e) => cambiar('controlaStock', e.target.checked)} />}
+                  label="Controlar stock"
+                />
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {valores.controlaStock ? 'Se cuentan las unidades y avisa cuando quedan pocas.' : negocio.ejemplos.sinStock}
+                </Typography>
+              </Box>
+            )}
 
             <Stack
               direction={{ xs: 'column', sm: 'row' }}
@@ -241,15 +257,17 @@ export function DialogoProducto({ producto, codigoInicial, categorias, alCrearCa
               </Typography>
             )}
 
-            <Box>
-              <FormControlLabel
-                control={<Switch checked={valores.accesoRapido} onChange={(e) => cambiar('accesoRapido', e.target.checked)} />}
-                label="Botón rápido en la pantalla de venta"
-              />
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                Ideal para lo que no tiene código: sándwiches, café, porciones.
-              </Typography>
-            </Box>
+            {!esCombinacion && (
+              <Box>
+                <FormControlLabel
+                  control={<Switch checked={valores.accesoRapido} onChange={(e) => cambiar('accesoRapido', e.target.checked)} />}
+                  label="Botón rápido en la pantalla de venta"
+                />
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {negocio.ejemplos.botonRapido}
+                </Typography>
+              </Box>
+            )}
 
             {editando && (
               <Box>

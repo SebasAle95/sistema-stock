@@ -3,6 +3,7 @@ import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalance
 import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
+import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
@@ -33,6 +34,13 @@ export const navegacionPrincipal: ItemNavegacion[] = [
   { titulo: 'Ventas', ruta: '/ventas', Icono: ReceiptLongOutlinedIcon, permiso: 'ventas.registrar' },
   { titulo: 'Caja', ruta: '/caja', Icono: AccountBalanceWalletOutlinedIcon, permiso: 'caja.operar' },
   { titulo: 'Productos', ruta: '/productos', Icono: LocalMallOutlinedIcon },
+  {
+    titulo: 'Etiquetas',
+    ruta: '/etiquetas',
+    Icono: LocalOfferOutlinedIcon,
+    permiso: 'stock.ingresar',
+    funcionalidad: 'etiquetas',
+  },
   { titulo: 'Ingreso de mercadería', ruta: '/stock/ingreso', Icono: LocalShippingOutlinedIcon, permiso: 'stock.ingresar' },
 ];
 

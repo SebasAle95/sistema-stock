@@ -65,6 +65,21 @@ export const productosService = {
     await validarCodigoLibre(cambios.codigoBarras, id);
     await validarCategoria(cambios.categoriaId);
 
+    // Una combinación de talle y color toma su nombre y su categoría del modelo.
+    const actual = await productosRepository.buscarPorId(id);
+    if (!actual) throw errores.noEncontrado('No existe el producto');
+    if (actual.modeloId) {
+      if (cambios.nombre !== undefined && cambios.nombre !== actual.nombre) {
+        throw errores.solicitudInvalida('El nombre de una combinación se cambia desde su modelo');
+      }
+      if (cambios.categoriaId !== undefined && cambios.categoriaId !== actual.categoriaId) {
+        throw errores.solicitudInvalida('La categoría de una combinación se cambia desde su modelo');
+      }
+      if (cambios.controlaStock === false) {
+        throw errores.solicitudInvalida('Las prendas siempre llevan control de stock');
+      }
+    }
+
     const actualizado = await productosRepository.actualizar(id, {
       ...cambios,
       ...(cambios.nombre ? { nombreBusqueda: normalizarParaBusqueda(cambios.nombre) } : {}),

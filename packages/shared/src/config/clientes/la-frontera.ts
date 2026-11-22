@@ -21,5 +21,11 @@ export const laFrontera: ConfigNegocio = {
     primario: '#1c3949',
     secundario: '#f6662f',
   },
+  ejemplos: {
+    producto: 'Coca-Cola 500 ml',
+    categoria: 'Bebidas',
+    sinStock: 'Para lo que se prepara en el momento (café, sándwich): no lleva stock.',
+    botonRapido: 'Ideal para lo que no tiene código: sándwiches, café, porciones.',
+  },
   funcionalidades: [],
 };

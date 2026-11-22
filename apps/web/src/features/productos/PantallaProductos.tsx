@@ -3,6 +3,7 @@
 import AddIcon from '@mui/icons-material/Add';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
@@ -19,6 +20,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
+import Tab from '@mui/material/Tab';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -26,20 +28,27 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
+import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import {
   formatearMoneda,
+  tieneFuncionalidad,
   type Categoria,
   type EstadoFiltroProductos,
+  type Modelo,
   type Pagina,
   type Producto,
+  type ResumenModelo,
 } from '@stock/shared';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useRef, useState } from 'react';
 import { EncabezadoPagina } from '@/components/EncabezadoPagina';
 import { useSesion } from '@/features/auth/SesionProvider';
+import { DialogoCurva } from '@/features/modelos/DialogoCurva';
+import { DialogoModelo } from '@/features/modelos/DialogoModelo';
+import { ListaModelos } from '@/features/modelos/ListaModelos';
 import { DialogoAjusteStock } from '@/features/stock/DialogoAjusteStock';
 import { useConsulta } from '@/hooks/useConsulta';
 import { pareceCodigoDeBarras, useLectorCodigoBarras } from '@/hooks/useLectorCodigoBarras';
@@ -54,6 +63,8 @@ type Dialogo =
   | { tipo: 'editar'; producto: Producto }
   | { tipo: 'categorias' }
   | { tipo: 'ajustar'; producto: Producto }
+  | { tipo: 'nuevoModelo' }
+  | { tipo: 'curva'; modeloId: string }
   | null;
 
 interface Aviso {
@@ -62,6 +73,11 @@ interface Aviso {
 }
 
 const MONO = { fontFamily: 'ui-monospace, Consolas, monospace' };
+
+/** Indumentaria: los productos se agrupan en modelos con talles y colores. */
+const conVariantes = tieneFuncionalidad('variantes');
+
+type Vista = 'modelos' | 'articulos';
 
 export function PantallaProductos() {
   const { tienePermiso } = useSesion();
@@ -80,6 +96,7 @@ export function PantallaProductos() {
   const [porPagina, setPorPagina] = useState(25);
   const [dialogo, setDialogo] = useState<Dialogo>(null);
   const [aviso, setAviso] = useState<Aviso | null>(null);
+  const [vista, setVista] = useState<Vista>(conVariantes ? 'modelos' : 'articulos');
   const refBuscador = useRef<HTMLInputElement>(null);
 
   const parametros = new URLSearchParams({ pagina: String(pagina + 1), porPagina: String(porPagina), estado });
@@ -87,7 +104,8 @@ export function PantallaProductos() {
   if (categoriaId) parametros.set('categoriaId', categoriaId);
   if (soloStockBajo) parametros.set('stockBajo', 'true');
 
-  const productos = useConsulta<Pagina<Producto>>(`/productos?${parametros}`);
+  const productos = useConsulta<Pagina<Producto>>(vista === 'articulos' ? `/productos?${parametros}` : null);
+  const modelos = useConsulta<Pagina<ResumenModelo>>(vista === 'modelos' ? `/modelos?${parametros}` : null);
   const categorias = useConsulta<Categoria[]>('/categorias');
   const listaCategorias = categorias.datos ?? [];
   const hayFiltros = Boolean(buscar || categoriaId || soloStockBajo || estado !== 'activos');
@@ -129,6 +147,20 @@ export function PantallaProductos() {
     categorias.recargar();
   }
 
+  /** Después de crear un modelo se abre su curva, para revisarla o imprimir las etiquetas. */
+  function alCrearModelo(modelo: Modelo, mensaje: string) {
+    setDialogo({ tipo: 'curva', modeloId: modelo.id });
+    setAviso({ severidad: 'success', mensaje });
+    modelos.recargar();
+    productos.recargar();
+    categorias.recargar();
+  }
+
+  function cambiarVista(nueva: Vista) {
+    setVista(nueva);
+    setPagina(0);
+  }
+
   const columnas = 4 + (verCostos ? 1 : 0) + (estado !== 'activos' ? 1 : 0) + (puedeGestionar ? 1 : 0);
 
   return (
@@ -136,12 +168,29 @@ export function PantallaProductos() {
       <EncabezadoPagina
         titulo="Productos"
         descripcion={
-          puedeGestionar
-            ? 'Pasá la pistola por un producto: si existe se abre, si no, lo das de alta en el momento.'
-            : 'Consultá precios y stock. Pasá la pistola para buscar un producto.'
+          conVariantes
+            ? 'Cada modelo agrupa sus talles y colores. Pasá la pistola por una etiqueta para abrir esa prenda.'
+            : puedeGestionar
+              ? 'Pasá la pistola por un producto: si existe se abre, si no, lo das de alta en el momento.'
+              : 'Consultá precios y stock. Pasá la pistola para buscar un producto.'
         }
         accion={
-          puedeGestionar && (
+          puedeGestionar &&
+          (conVariantes ? (
+            <Stack direction="row" sx={{ flexWrap: { xs: 'wrap', lg: 'nowrap' }, gap: 1, flexShrink: 0 }}>
+              <Button variant="outlined" startIcon={<CategoryOutlinedIcon />} onClick={() => setDialogo({ tipo: 'categorias' })}>
+                Categorías
+              </Button>
+              <Tooltip title="Algo sin talle ni color: un cinturón, una cartera">
+                <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setDialogo({ tipo: 'crear' })}>
+                  Producto suelto
+                </Button>
+              </Tooltip>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDialogo({ tipo: 'nuevoModelo' })}>
+                Nuevo modelo
+              </Button>
+            </Stack>
+          ) : (
             <Stack direction="row" spacing={1}>
               <Button variant="outlined" startIcon={<CategoryOutlinedIcon />} onClick={() => setDialogo({ tipo: 'categorias' })}>
                 Categorías
@@ -150,11 +199,21 @@ export function PantallaProductos() {
                 Nuevo producto
               </Button>
             </Stack>
-          )
+          ))
         }
       />
 
       <Card variant="outlined">
+        {conVariantes && (
+          <Tabs
+            value={vista}
+            onChange={(_, nueva: Vista) => cambiarVista(nueva)}
+            sx={{ px: 2, borderBottom: 1, borderColor: 'divider' }}
+          >
+            <Tab value="modelos" label="Por modelo" />
+            <Tab value="articulos" label="Por artículo" />
+          </Tabs>
+        )}
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ p: 2, alignItems: { md: 'center' } }}>
           <TextField
             inputRef={refBuscador}
@@ -244,110 +303,143 @@ export function PantallaProductos() {
           />
         </Stack>
 
-        <Box sx={{ height: 4 }}>{productos.cargando && <LinearProgress />}</Box>
-        {productos.error && (
-          <Alert severity="error" sx={{ m: 2 }}>
-            {productos.error}
-          </Alert>
+        {vista === 'modelos' && (
+          <ListaModelos
+            consulta={modelos}
+            hayFiltros={hayFiltros}
+            puedeGestionar={puedeGestionar}
+            pagina={pagina}
+            porPagina={porPagina}
+            alCambiarPagina={setPagina}
+            alCambiarPorPagina={(n) => {
+              setPorPagina(n);
+              setPagina(0);
+            }}
+            alAbrir={(modeloId) => setDialogo({ tipo: 'curva', modeloId })}
+          />
         )}
 
-        <TableContainer>
-          <Table sx={{ minWidth: 640 }}>
-            <TableHead>
-              <TableRow>
-                <TableCell>Código</TableCell>
-                <TableCell>Producto</TableCell>
-                <TableCell align="right">Precio</TableCell>
-                {verCostos && <TableCell align="right">Costo</TableCell>}
-                <TableCell align="center">Stock</TableCell>
-                {estado !== 'activos' && <TableCell>Estado</TableCell>}
-                {puedeGestionar && <TableCell align="right" />}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {productos.datos?.items.map((p) => (
-                <TableRow
-                  key={p.id}
-                  hover
-                  onClick={puedeGestionar ? () => setDialogo({ tipo: 'editar', producto: p }) : undefined}
-                  sx={{ cursor: puedeGestionar ? 'pointer' : 'default', opacity: p.activo ? 1 : 0.55 }}
-                >
-                  <TableCell sx={{ ...MONO, color: p.codigoBarras ? 'text.primary' : 'text.disabled' }}>
-                    {p.codigoBarras ?? 'sin código'}
-                  </TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                      <Typography sx={{ fontWeight: 500 }}>{p.nombre}</Typography>
-                      {p.accesoRapido && <Chip size="small" variant="outlined" color="secondary" label="Rápido" />}
-                    </Stack>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      {p.categoria?.nombre ?? 'Sin categoría'}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
-                    {formatearMoneda(p.precioVenta)}
-                  </TableCell>
-                  {verCostos && (
-                    <TableCell align="right" sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
-                      {p.precioCosto != null ? formatearMoneda(p.precioCosto) : '—'}
-                    </TableCell>
-                  )}
-                  <TableCell align="center">
-                    <ChipStock stock={p.stock} stockMinimo={p.stockMinimo} controlaStock={p.controlaStock} />
-                  </TableCell>
-                  {estado !== 'activos' && (
-                    <TableCell>{p.activo ? <Chip size="small" label="Activo" /> : <Chip size="small" label="Desactivado" />}</TableCell>
-                  )}
-                  {puedeGestionar && (
-                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                      {puedeAjustar && p.controlaStock && p.activo && (
-                        <Tooltip title="Ajustar stock o registrar merma">
-                          <IconButton
-                            aria-label={`Ajustar stock de ${p.nombre}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDialogo({ tipo: 'ajustar', producto: p });
-                            }}
-                          >
-                            <TuneIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+        {vista === 'articulos' && (
+          <>
+            <Box sx={{ height: 4 }}>{productos.cargando && <LinearProgress />}</Box>
+            {productos.error && (
+              <Alert severity="error" sx={{ m: 2 }}>
+                {productos.error}
+              </Alert>
+            )}
+
+            <TableContainer>
+              <Table sx={{ minWidth: 640 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Código</TableCell>
+                    <TableCell>Producto</TableCell>
+                    <TableCell align="right">Precio</TableCell>
+                    {verCostos && <TableCell align="right">Costo</TableCell>}
+                    <TableCell align="center">Stock</TableCell>
+                    {estado !== 'activos' && <TableCell>Estado</TableCell>}
+                    {puedeGestionar && <TableCell align="right" />}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {productos.datos?.items.map((p) => (
+                    <TableRow
+                      key={p.id}
+                      hover
+                      onClick={puedeGestionar ? () => setDialogo({ tipo: 'editar', producto: p }) : undefined}
+                      sx={{ cursor: puedeGestionar ? 'pointer' : 'default', opacity: p.activo ? 1 : 0.55 }}
+                    >
+                      <TableCell sx={{ ...MONO, color: p.codigoBarras ? 'text.primary' : 'text.disabled' }}>
+                        {p.codigoBarras ?? 'sin código'}
+                      </TableCell>
+                      <TableCell>
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                          <Typography sx={{ fontWeight: 500 }}>{p.nombre}</Typography>
+                          {p.accesoRapido && <Chip size="small" variant="outlined" color="secondary" label="Rápido" />}
+                        </Stack>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          {p.categoria?.nombre ?? 'Sin categoría'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        {formatearMoneda(p.precioVenta)}
+                      </TableCell>
+                      {verCostos && (
+                        <TableCell align="right" sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                          {p.precioCosto != null ? formatearMoneda(p.precioCosto) : '—'}
+                        </TableCell>
                       )}
-                      <IconButton aria-label={`Editar ${p.nombre}`}>
-                        <EditOutlinedIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
+                      <TableCell align="center">
+                        <ChipStock stock={p.stock} stockMinimo={p.stockMinimo} controlaStock={p.controlaStock} />
+                      </TableCell>
+                      {estado !== 'activos' && (
+                        <TableCell>{p.activo ? <Chip size="small" label="Activo" /> : <Chip size="small" label="Desactivado" />}</TableCell>
+                      )}
+                      {puedeGestionar && (
+                        <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                          {p.modelo && (
+                            <Tooltip title="Ver el modelo por talle y color">
+                              <IconButton
+                                aria-label={`Ver ${p.modelo.nombre} por talle y color`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (p.modelo) setDialogo({ tipo: 'curva', modeloId: p.modelo.id });
+                                }}
+                              >
+                                <GridViewOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          {puedeAjustar && p.controlaStock && p.activo && (
+                            <Tooltip title="Ajustar stock o registrar merma">
+                              <IconButton
+                                aria-label={`Ajustar stock de ${p.nombre}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDialogo({ tipo: 'ajustar', producto: p });
+                                }}
+                              >
+                                <TuneIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          <IconButton aria-label={`Editar ${p.nombre}`}>
+                            <EditOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+
+                  {productos.datos && productos.datos.items.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={columnas} sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>
+                        {hayFiltros
+                          ? 'No hay productos que coincidan con la búsqueda.'
+                          : puedeGestionar
+                            ? 'Todavía no hay productos. Pasá la pistola por uno para darlo de alta, o tocá "Nuevo producto".'
+                            : 'Todavía no hay productos cargados.'}
+                      </TableCell>
+                    </TableRow>
                   )}
-                </TableRow>
-              ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
 
-              {productos.datos && productos.datos.items.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={columnas} sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>
-                    {hayFiltros
-                      ? 'No hay productos que coincidan con la búsqueda.'
-                      : puedeGestionar
-                        ? 'Todavía no hay productos. Pasá la pistola por uno para darlo de alta, o tocá "Nuevo producto".'
-                        : 'Todavía no hay productos cargados.'}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        <TablePagination
-          component="div"
-          count={productos.datos?.total ?? 0}
-          page={pagina}
-          rowsPerPage={porPagina}
-          rowsPerPageOptions={[25, 50, 100]}
-          onPageChange={(_, nueva) => setPagina(nueva)}
-          onRowsPerPageChange={(e) => {
-            setPorPagina(Number(e.target.value));
-            setPagina(0);
-          }}
-        />
+            <TablePagination
+              component="div"
+              count={productos.datos?.total ?? 0}
+              page={pagina}
+              rowsPerPage={porPagina}
+              rowsPerPageOptions={[25, 50, 100]}
+              onPageChange={(_, nueva) => setPagina(nueva)}
+              onRowsPerPageChange={(e) => {
+                setPorPagina(Number(e.target.value));
+                setPagina(0);
+              }}
+            />
+          </>
+        )}
       </Card>
 
       {(dialogo?.tipo === 'crear' || dialogo?.tipo === 'editar') && (
@@ -367,6 +459,28 @@ export function PantallaProductos() {
           alGuardar={(mensaje) => {
             cerrarDialogo();
             setAviso({ severidad: 'success', mensaje });
+            productos.recargar();
+          }}
+        />
+      )}
+      {dialogo?.tipo === 'nuevoModelo' && (
+        <DialogoModelo
+          modo="crear"
+          categorias={listaCategorias}
+          alCrearCategoria={() => categorias.recargar()}
+          alCerrar={cerrarDialogo}
+          alGuardar={alCrearModelo}
+        />
+      )}
+      {dialogo?.tipo === 'curva' && (
+        <DialogoCurva
+          modeloId={dialogo.modeloId}
+          categorias={listaCategorias}
+          alCrearCategoria={() => categorias.recargar()}
+          alCerrar={cerrarDialogo}
+          alCambiar={(mensaje) => {
+            setAviso({ severidad: 'success', mensaje });
+            modelos.recargar();
             productos.recargar();
           }}
         />

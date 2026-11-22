@@ -24,5 +24,11 @@ export const bellaEsencia: ConfigNegocio = {
     secundario: '#f88086',
   },
   estilo: 'boutique',
-  funcionalidades: ['variantes', 'devoluciones'],
+  ejemplos: {
+    producto: 'Cinturón de cuero negro',
+    categoria: 'Remeras',
+    sinStock: 'Para lo que no se cuenta por unidades (un arreglo, un envoltorio de regalo): no lleva stock.',
+    botonRapido: 'Para lo que se cobra seguido y no lleva etiqueta: bolsas de regalo, arreglos.',
+  },
+  funcionalidades: ['variantes', 'etiquetas', 'devoluciones'],
 };
