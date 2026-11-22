@@ -54,6 +54,7 @@ Se prenden en la configuración del cliente (`funcionalidades: [...]`). Apagadas
    - `nombre`, `nombreCorto` (pestaña del navegador) y `lema` (frase del login).
    - `mediosDePago`: tiene que incluir `efectivo`, porque la caja calcula el efectivo esperado con él.
    - `tema.primario`: el texto blanco encima tiene que leerse (contraste de 4,5:1 o más). `tema.secundario` es el acento.
+   - `estilo`: `clasico` (barra de color, login con fondo de la marca, como La Frontera) o `boutique` (fondos claros y planos, títulos con serifa y login a pantalla partida, como Bella Esencia). Son las mismas pantallas con otra estética.
    - `funcionalidades`: las que correspondan.
 2. **Registrarlo** en `packages/shared/src/config/clientes/index.ts`.
 3. **Imágenes** en `apps/web/public/clientes/<id>/`: el logo, preferentemente PNG con fondo transparente o SVG, y si querés una imagen de fondo para el login (`fondoLogin`).

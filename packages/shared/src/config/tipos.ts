@@ -47,5 +47,11 @@ export interface ConfigNegocio {
     /** Color de acento. */
     secundario: string;
   };
+  /**
+   * Estética general, con los mismos componentes y pantallas:
+   * - "clasico" (por defecto): barra de color, login con fondo de la marca.
+   * - "boutique": fondos claros y planos, títulos con serifa y login a pantalla partida (moda, tiendas).
+   */
+  estilo?: 'clasico' | 'boutique';
   funcionalidades: readonly Funcionalidad[];
 }

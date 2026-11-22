@@ -23,5 +23,6 @@ export const bellaEsencia: ConfigNegocio = {
     primario: '#c74552',
     secundario: '#f88086',
   },
+  estilo: 'boutique',
   funcionalidades: ['variantes', 'devoluciones'],
 };
