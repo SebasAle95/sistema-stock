@@ -3,13 +3,14 @@ import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalance
 import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
+import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
 import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import SavingsOutlinedIcon from '@mui/icons-material/SavingsOutlined';
-import type { Permiso } from '@stock/shared';
+import type { Funcionalidad, Permiso } from '@stock/shared';
 
 export interface ItemNavegacion {
   titulo: string;
@@ -17,6 +18,8 @@ export interface ItemNavegacion {
   Icono: SvgIconComponent;
   /** Si se indica, el ítem solo aparece para los roles que tienen este permiso. */
   permiso?: Permiso;
+  /** Si se indica, el ítem solo aparece en los clientes que tienen prendida esta funcionalidad. */
+  funcionalidad?: Funcionalidad;
 }
 
 /**
@@ -31,6 +34,13 @@ export const navegacionPrincipal: ItemNavegacion[] = [
   { titulo: 'Ventas', ruta: '/ventas', Icono: ReceiptLongOutlinedIcon, permiso: 'ventas.registrar' },
   { titulo: 'Caja', ruta: '/caja', Icono: AccountBalanceWalletOutlinedIcon, permiso: 'caja.operar' },
   { titulo: 'Productos', ruta: '/productos', Icono: LocalMallOutlinedIcon },
+  {
+    titulo: 'Etiquetas',
+    ruta: '/etiquetas',
+    Icono: LocalOfferOutlinedIcon,
+    permiso: 'stock.ingresar',
+    funcionalidad: 'etiquetas',
+  },
   { titulo: 'Ingreso de mercadería', ruta: '/stock/ingreso', Icono: LocalShippingOutlinedIcon, permiso: 'stock.ingresar' },
 ];
 

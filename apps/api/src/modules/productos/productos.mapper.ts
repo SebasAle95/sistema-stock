@@ -17,6 +17,9 @@ export function aProducto(fila: FilaProductoConCategoria, usuario: Usuario): Pro
     controlaStock: fila.controlaStock,
     accesoRapido: fila.accesoRapido,
     activo: fila.activo,
+    modelo: fila.modeloId && fila.modeloNombre ? { id: fila.modeloId, nombre: fila.modeloNombre } : null,
+    talle: fila.talle,
+    color: fila.color,
     creadoEn: fila.creadoEn.toISOString(),
     actualizadoEn: fila.actualizadoEn.toISOString(),
   };

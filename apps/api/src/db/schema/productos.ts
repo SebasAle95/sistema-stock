@@ -1,6 +1,6 @@
 import { TIPOS_MOVIMIENTO_STOCK } from '@stock/shared';
 import { sql } from 'drizzle-orm';
-import { boolean, index, integer, pgEnum, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, pgEnum, pgSequence, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { dinero, fecha } from './columnas';
 import { usuarios } from './usuarios';
 import { ventas } from './ventas';
@@ -15,6 +15,30 @@ export const categorias = pgTable(
   // Sin repetidos aunque cambien mayúsculas ("Bebidas" = "bebidas").
   (tabla) => [uniqueIndex('categorias_nombre_unico').on(sql`lower(${tabla.nombre})`)],
 ).enableRLS();
+
+/**
+ * Modelos de indumentaria (funcionalidad "variantes"): "Remera básica". Cada
+ * combinación de talle y color es un producto con modeloId, su stock y su código.
+ * En los clientes sin esa funcionalidad, esta tabla queda vacía.
+ */
+export const modelos = pgTable(
+  'modelos',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    nombre: text().notNull(),
+    nombreBusqueda: text().notNull(),
+    categoriaId: uuid().references(() => categorias.id, { onDelete: 'set null' }),
+    /** Precio, costo y stock mínimo con que se crean sus combinaciones. Cambiarlos acá los cambia en todas. */
+    precioVenta: dinero().notNull(),
+    precioCosto: dinero(),
+    stockMinimo: integer().notNull().default(0),
+    creadoEn: fecha().notNull().defaultNow(),
+  },
+  (tabla) => [index().on(tabla.nombreBusqueda)],
+).enableRLS();
+
+/** Números para los códigos de barras internos (EAN-13 que empiezan con 21). */
+export const secuenciaCodigosInternos = pgSequence('codigos_internos_seq', { startWith: 1 });
 
 export const productos = pgTable(
   'productos',
@@ -42,13 +66,25 @@ export const productos = pgTable(
     accesoRapido: boolean().notNull().default(false),
     /** Desactivar en vez de borrar: las ventas quedan asociadas al producto. */
     activo: boolean().notNull().default(true),
+    /** Indumentaria: modelo, talle y color de esta combinación. null en productos sueltos. */
+    modeloId: uuid().references(() => modelos.id, { onDelete: 'restrict' }),
+    talle: text(),
+    color: text(),
     creadoEn: fecha().notNull().defaultNow(),
     actualizadoEn: fecha()
       .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (tabla) => [index().on(tabla.categoriaId), index().on(tabla.nombreBusqueda)],
+  (tabla) => [
+    index().on(tabla.categoriaId),
+    index().on(tabla.nombreBusqueda),
+    index().on(tabla.modeloId),
+    // Un modelo no puede tener dos veces el mismo talle y color.
+    uniqueIndex('productos_modelo_talle_color_unico')
+      .on(tabla.modeloId, sql`coalesce(lower(${tabla.talle}), '')`, sql`coalesce(lower(${tabla.color}), '')`)
+      .where(sql`${tabla.modeloId} is not null`),
+  ],
 ).enableRLS();
 
 export const tipoMovimientoStock = pgEnum('tipo_movimiento_stock', TIPOS_MOVIMIENTO_STOCK);
@@ -80,6 +116,7 @@ export const movimientosStock = pgTable(
 ).enableRLS();
 
 export type FilaCategoria = typeof categorias.$inferSelect;
+export type FilaModelo = typeof modelos.$inferSelect;
 export type FilaProducto = typeof productos.$inferSelect;
 export type NuevaFilaProducto = typeof productos.$inferInsert;
 export type FilaMovimientoStock = typeof movimientosStock.$inferSelect;

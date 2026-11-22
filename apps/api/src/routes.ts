@@ -1,10 +1,13 @@
+import { tieneFuncionalidad } from '@stock/shared';
 import { Router } from 'express';
 import { requiereSesion } from './middlewares/autenticacion';
 import { authRoutes } from './modules/auth/auth.routes';
 import { cajaRoutes } from './modules/caja/caja.routes';
 import { categoriasRoutes } from './modules/categorias/categorias.routes';
 import { estadisticasRoutes } from './modules/estadisticas/estadisticas.routes';
+import { etiquetasRoutes } from './modules/etiquetas/etiquetas.routes';
 import { healthRoutes } from './modules/health/health.routes';
+import { modelosRoutes } from './modules/modelos/modelos.routes';
 import { productosRoutes } from './modules/productos/productos.routes';
 import { stockRoutes } from './modules/stock/stock.routes';
 import { usuariosRoutes } from './modules/usuarios/usuarios.routes';
@@ -27,3 +30,7 @@ rutas.use('/stock', stockRoutes);
 rutas.use('/caja', cajaRoutes);
 rutas.use('/ventas', ventasRoutes);
 rutas.use('/estadisticas', estadisticasRoutes);
+
+// --- Funcionalidades opcionales: solo existen en los clientes que las tienen prendidas ---
+if (tieneFuncionalidad('variantes')) rutas.use('/modelos', modelosRoutes);
+if (tieneFuncionalidad('etiquetas')) rutas.use('/etiquetas', etiquetasRoutes);

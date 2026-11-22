@@ -2,17 +2,22 @@
 # oficina (HAProxy, proyecto aparte en /opt/hhsg/deploy/portero) le pasa el tráfico de 80/443.
 # La base está en Supabase (DATABASE_URL); la API y la web solo existen en la red interna.
 #   docker compose -f docker-compose.prod.yml --env-file .env up -d --build --wait
-name: stock
+#
+# Una instalación por cliente (docs/clientes.md): cada una con su carpeta, su .env, su CLIENTE,
+# su NOMBRE_PROYECTO y sus puertos. Sin esas variables queda todo como siempre (La Frontera).
+name: ${NOMBRE_PROYECTO:-stock}
 
 x-api-build: &api-build
   context: .
   dockerfile: apps/api/Dockerfile
+  args:
+    CLIENTE: ${CLIENTE:-la-frontera}
 
 services:
   # Aplica las migraciones pendientes en cada despliegue y termina. La API espera a que salga bien.
   migrate:
     build: *api-build
-    image: stock-api
+    image: ${NOMBRE_PROYECTO:-stock}-api
     command: ["node", "dist/migrar.js"]
     environment:
       NODE_ENV: production
@@ -21,7 +26,7 @@ services:
 
   api:
     build: *api-build
-    image: stock-api
+    image: ${NOMBRE_PROYECTO:-stock}-api
     environment:
       NODE_ENV: production
       PORT: 4100
@@ -46,7 +51,9 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    image: stock-web
+      args:
+        CLIENTE: ${CLIENTE:-la-frontera}
+    image: ${NOMBRE_PROYECTO:-stock}-web
     depends_on:
       api:
         condition: service_healthy
@@ -63,9 +70,10 @@ services:
     environment:
       DOMINIO: ${DOMINIO:?definí DOMINIO en .env}
     # Puertos distintos de los de HHSG (8080 y 8443), y solo en 127.0.0.1: entra por el portero.
+    # Cada instalación necesita los suyos (La Frontera: 8081 y 8444).
     ports:
-      - "127.0.0.1:8081:80"
-      - "127.0.0.1:8444:443"
+      - "127.0.0.1:${PUERTO_HTTP:-8081}:80"
+      - "127.0.0.1:${PUERTO_HTTPS:-8444}:443"
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

@@ -38,6 +38,11 @@ export function DialogoCobro({ total, items, alCerrar, alCobrar }: Props) {
   const vuelto = esEfectivo && recibidoValido ? montoRecibido - total : null;
   const sugeridos = BILLETES.filter((b) => b >= total).slice(0, 3);
 
+  function elegirMedio(id: string) {
+    setMedioPago(id);
+    setError(null);
+  }
+
   async function cobrar(evento?: FormEvent) {
     evento?.preventDefault();
     if (esEfectivo && recibido !== '' && !recibidoValido) return setError('El monto recibido no es un número válido');
@@ -71,24 +76,43 @@ export function DialogoCobro({ total, items, alCerrar, alCobrar }: Props) {
             </Box>
             {error && <Alert severity="error">{error}</Alert>}
 
-            <ToggleButtonGroup
-              exclusive
-              fullWidth
-              color="primary"
-              value={medioPago}
-              onChange={(_, nuevo: string | null) => {
-                if (nuevo) {
-                  setMedioPago(nuevo);
-                  setError(null);
-                }
-              }}
-            >
-              {negocio.mediosDePago.map((m) => (
-                <ToggleButton key={m.id} value={m.id} sx={{ py: 1.25 }}>
-                  {m.nombre}
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
+            {negocio.mediosDePago.length <= 3 ? (
+              // Hasta 3 medios entran en una fila.
+              <ToggleButtonGroup
+                exclusive
+                fullWidth
+                color="primary"
+                value={medioPago}
+                onChange={(_, nuevo: string | null) => nuevo && elegirMedio(nuevo)}
+              >
+                {negocio.mediosDePago.map((m) => (
+                  <ToggleButton key={m.id} value={m.id} sx={{ py: 1.25 }}>
+                    {m.nombre}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            ) : (
+              // Con más (débito, crédito…), una grilla que se acomoda al ancho.
+              <Box
+                role="group"
+                aria-label="Medio de pago"
+                sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))' }}
+              >
+                {negocio.mediosDePago.map((m) => (
+                  <ToggleButton
+                    key={m.id}
+                    value={m.id}
+                    color="primary"
+                    selected={medioPago === m.id}
+                    onChange={() => elegirMedio(m.id)}
+                    // Sin mayúsculas forzadas: "Mercado Pago" entra en un renglón.
+                    sx={{ py: 1.25, textTransform: 'none', fontWeight: 600, fontSize: '0.95rem' }}
+                  >
+                    {m.nombre}
+                  </ToggleButton>
+                ))}
+              </Box>
+            )}
 
             {esEfectivo && (
               <Stack spacing={1.5}>

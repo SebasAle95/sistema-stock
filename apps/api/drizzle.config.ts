@@ -1,7 +1,8 @@
-import dotenv from 'dotenv';
 import { defineConfig } from 'drizzle-kit';
+import { cargarEnv } from './src/config/cargarEnv';
 
-dotenv.config({ quiet: true });
+// La misma carga que la API: `npm run bella -- db:migrate` migra la base de Bella.
+cargarEnv();
 
 export default defineConfig({
   dialect: 'postgresql',
