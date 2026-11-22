@@ -22,6 +22,9 @@ RUN npm ci --workspace @stock/api --include-workspace-root --no-audit --no-fund
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/api apps/api
+# CLIENTE elige medios de pago, zona horaria y funcionalidades (docs/clientes.md); queda fijo en el build.
+ARG CLIENTE=la-frontera
+ENV CLIENTE=$CLIENTE
 RUN npm run build -w @stock/api
 
 FROM node:22-bookworm-slim

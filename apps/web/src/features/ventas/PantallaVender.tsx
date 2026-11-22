@@ -160,9 +160,15 @@ export function PantallaVender() {
               return (
                 <Stack key={producto.id} direction="row" spacing={1} sx={{ px: 2, py: 1.25, alignItems: 'center' }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
+                    {/* Prendas: el modelo arriba y el color y el talle abajo, para que el talle nunca quede cortado. */}
                     <Typography sx={{ fontWeight: 500 }} noWrap>
-                      {producto.nombre}
+                      {producto.modelo?.nombre ?? producto.nombre}
                     </Typography>
+                    {producto.modelo && (
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {[producto.color, producto.talle ? `Talle ${producto.talle}` : null].filter(Boolean).join(' · ')}
+                      </Typography>
+                    )}
                     <Typography variant="body2" sx={{ color: sinStock ? 'warning.main' : 'text.secondary' }}>
                       {formatearMoneda(producto.precioVenta)}
                       {sinStock && ` · el sistema tiene ${producto.stock} en stock`}

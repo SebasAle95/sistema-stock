@@ -12,6 +12,8 @@
   },
   "scripts": {
     "dev": "concurrently -n api,web -c magenta,cyan \"npm:dev:api\" \"npm:dev:web\"",
+    "frontera": "node scripts/cliente.mjs la-frontera",
+    "bella": "node scripts/cliente.mjs bella-esencia",
     "dev:api": "npm run dev -w @stock/api",
     "dev:web": "npm run dev -w @stock/web",
     "build": "npm run build -w @stock/api && npm run build -w @stock/web",

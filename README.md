@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="apps/web/public/la-frontera.png" alt="La Frontera Fútbol 5" width="120" />
+  <img src="apps/web/public/clientes/la-frontera/logo.png" alt="La Frontera Fútbol 5" width="120" />
 </p>
 
 <h1 align="center">Sistema de stock y cantina — La Frontera Fútbol 5</h1>
@@ -249,6 +249,7 @@ Los puertos son fijos y distintos de los habituales (3000/4000), para no chocar 
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | API y web en modo desarrollo (se recargan solas al guardar). |
+| `npm run frontera` / `npm run bella` | Lo mismo, para ese cliente: su marca y su base. Con `--` corre otro comando para él, por ejemplo `npm run bella -- crear-admin` ([docs/clientes.md](docs/clientes.md#probarlo-en-tu-máquina)). |
 | `npm run build` | Compila la API (`apps/api/dist`) y la web (`apps/web/.next`). |
 | `npm run start:api` / `npm run start:web` | Ejecuta lo compilado. |
 | `npm run typecheck` | Verifica los tipos de TypeScript en todo el repositorio. |
@@ -369,9 +370,17 @@ No hace falta try/catch en los controllers: Express 5 manda los errores de funci
 
 ---
 
+## Varios clientes
+
+El mismo sistema sirve a varios negocios, cada uno con su marca, su base de datos y su instalación. Hoy son **La Frontera Fútbol 5** (cantina) y **Bella Esencia** (indumentaria). Cuál se compila lo decide la variable `CLIENTE`; sin ella es La Frontera.
+
+- **Configuración de cada cliente:** [`packages/shared/src/config/clientes/`](packages/shared/src/config/clientes/): nombre, lema, logo, colores, medios de pago, zona horaria, ejemplos del rubro y funcionalidades.
+- **Imágenes:** `apps/web/public/clientes/<id>/`.
+- **Funcionalidades por cliente** (por ejemplo, talles y colores solo para indumentaria): apagadas, no aparecen en el menú y la API no registra sus rutas.
+- **Cómo sumar y desplegar un cliente:** [docs/clientes.md](docs/clientes.md).
+
 ## Personalizar o reutilizar para otro negocio
 
-- **Datos del negocio:** [`packages/shared/src/config/negocio.ts`](packages/shared/src/config/negocio.ts) tiene el nombre, la moneda, la zona horaria, los medios de pago, el logo y los colores.
 - **Roles y permisos:** [`packages/shared/src/auth/roles.ts`](packages/shared/src/auth/roles.ts).
 - **Base reutilizable:** el tag `base-v1` tiene la estructura con login y roles, sin funcionalidades de un negocio en particular:
   ```bash

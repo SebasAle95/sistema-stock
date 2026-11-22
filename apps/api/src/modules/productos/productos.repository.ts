@@ -2,12 +2,15 @@ import type { FiltrosProductos } from '@stock/shared';
 import { normalizarParaBusqueda } from '@stock/shared';
 import { and, asc, count, eq, getTableColumns, isNull, like, ne, or, sql, type SQL } from 'drizzle-orm';
 import { obtenerDb } from '../../db/client';
-import { categorias, movimientosStock, productos, type NuevaFilaProducto } from '../../db/schema';
+import { categorias, modelos, movimientosStock, productos, type NuevaFilaProducto } from '../../db/schema';
 
 /** Columnas del producto + el nombre de su categoría. */
-const columnas = { ...getTableColumns(productos), categoriaNombre: categorias.nombre };
+const columnas = { ...getTableColumns(productos), categoriaNombre: categorias.nombre, modeloNombre: modelos.nombre };
 
-export type FilaProductoConCategoria = typeof productos.$inferSelect & { categoriaNombre: string | null };
+export type FilaProductoConCategoria = typeof productos.$inferSelect & {
+  categoriaNombre: string | null;
+  modeloNombre: string | null;
+};
 
 /** Escapa los comodines de LIKE para buscar el texto tal cual. */
 function escaparLike(texto: string): string {
@@ -40,8 +43,13 @@ function condiciones(filtros: FiltrosProductos): SQL | undefined {
   return and(...lista);
 }
 
-function consultaBase() {
-  return obtenerDb().select(columnas).from(productos).leftJoin(categorias, eq(productos.categoriaId, categorias.id));
+/** Productos con el nombre de su categoría y de su modelo (si es una combinación de talle y color). */
+export function consultaBase() {
+  return obtenerDb()
+    .select(columnas)
+    .from(productos)
+    .leftJoin(categorias, eq(productos.categoriaId, categorias.id))
+    .leftJoin(modelos, eq(productos.modeloId, modelos.id));
 }
 
 export const productosRepository = {

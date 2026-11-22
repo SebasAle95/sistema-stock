@@ -18,7 +18,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import { esquemaCategoria, erroresDeCampos, type Categoria } from '@stock/shared';
+import { esquemaCategoria, erroresDeCampos, negocio, type Categoria } from '@stock/shared';
 import { useState, type FormEvent } from 'react';
 import { api, mensajeDeError } from '@/lib/apiClient';
 
@@ -87,7 +87,7 @@ export function DialogoCategorias({ categorias, alCambiar, alCerrar }: Props) {
               fullWidth
               value={nueva}
               onChange={(e) => setNueva(e.target.value)}
-              placeholder="Por ejemplo: Bebidas"
+              placeholder={`Por ejemplo: ${negocio.ejemplos.categoria}`}
             />
             <Button type="submit" variant="contained" disabled={ocupado}>
               Agregar
