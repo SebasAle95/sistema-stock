@@ -1,7 +1,8 @@
-import dotenv from 'dotenv';
 import { z } from 'zod';
+import { cargarEnv } from './cargarEnv';
 
-dotenv.config({ quiet: true });
+// .env común + .env.<cliente> (ver cargarEnv). Tiene que correr antes de leer process.env.
+cargarEnv();
 
 /** Convierte "" en undefined, para que una variable vacía en el .env cuente como "no definida". */
 const vacioComoIndefinido = (valor: unknown) => (valor === '' ? undefined : valor);

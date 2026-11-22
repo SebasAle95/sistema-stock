@@ -249,6 +249,7 @@ Los puertos son fijos y distintos de los habituales (3000/4000), para no chocar 
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | API y web en modo desarrollo (se recargan solas al guardar). |
+| `npm run frontera` / `npm run bella` | Lo mismo, para ese cliente: su marca y su base. Con `--` corre otro comando para él, por ejemplo `npm run bella -- crear-admin` ([docs/clientes.md](docs/clientes.md#probarlo-en-tu-máquina)). |
 | `npm run build` | Compila la API (`apps/api/dist`) y la web (`apps/web/.next`). |
 | `npm run start:api` / `npm run start:web` | Ejecuta lo compilado. |
 | `npm run typecheck` | Verifica los tipos de TypeScript en todo el repositorio. |

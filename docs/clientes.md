@@ -76,15 +76,30 @@ Las combinaciones sin código de fábrica, y lo que se etiquete desde la pantall
 
 ### Probarlo en tu máquina
 
-En `apps/api/.env` y en `apps/web/.env.local`, el mismo `CLIENTE=<id>`, y en `apps/api/.env` la `DATABASE_URL` **de la base de ese cliente**. Después:
+Cada cliente tiene un comando que arranca todo con su marca y su base:
 
 ```sh
-npm run db:migrate      # crea las tablas en su base
-npm run crear-admin
-npm run dev             # reiniciarlo si ya estaba corriendo
+npm run frontera        # La Frontera (cantina)
+npm run bella           # Bella Esencia (indumentaria)
 ```
 
-Para volver a La Frontera: `CLIENTE=la-frontera` y su `DATABASE_URL`.
+Para cambiar, se frena el que está corriendo (`Ctrl+C`) y se arranca el otro. Con `--` se corre cualquier otro comando para ese cliente:
+
+```sh
+npm run bella -- db:migrate      # crea o actualiza las tablas en la base de Bella
+npm run bella -- crear-admin     # crea un administrador en la base de Bella
+```
+
+**De dónde sale la base de cada uno.** La API lee `apps/api/.env` (lo común) y, encima, `apps/api/.env.<cliente>`, donde va la `DATABASE_URL` de ese cliente:
+
+| Archivo | Qué tiene |
+|---|---|
+| `apps/api/.env` | Lo común, y la base de La Frontera |
+| `apps/api/.env.bella-esencia` | `DATABASE_URL=` la base de Bella |
+
+Ninguno de esos archivos se sube a GitHub ni entra en las imágenes de Docker. Si se pide un cliente y no se encuentra su base, la API no arranca: nunca usa la base de otro cliente.
+
+Para un cliente nuevo: crear `apps/api/.env.<id>` con su `DATABASE_URL` y sumar en el `package.json` de la raíz un comando como los de arriba: `"<nombre>": "node scripts/cliente.mjs <id>"`.
 
 ## Desplegar un cliente en el mismo servidor
 
