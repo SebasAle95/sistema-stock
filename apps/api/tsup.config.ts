@@ -16,4 +16,7 @@ export default defineConfig({
   sourcemap: true,
   // @stock/shared se publica como código TypeScript: se incluye dentro del build.
   noExternal: [/^@stock\//],
+  // Cliente para el que se compila (ver packages/shared/src/config/clientes/). Queda fijo en el
+  // build, igual que en la web, así la API y la web de una instalación son siempre del mismo cliente.
+  env: { CLIENTE: process.env.CLIENTE || 'la-frontera' },
 });

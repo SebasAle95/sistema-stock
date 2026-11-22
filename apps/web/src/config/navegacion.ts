@@ -9,7 +9,7 @@ import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlin
 import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import SavingsOutlinedIcon from '@mui/icons-material/SavingsOutlined';
-import type { Permiso } from '@stock/shared';
+import type { Funcionalidad, Permiso } from '@stock/shared';
 
 export interface ItemNavegacion {
   titulo: string;
@@ -17,6 +17,8 @@ export interface ItemNavegacion {
   Icono: SvgIconComponent;
   /** Si se indica, el ítem solo aparece para los roles que tienen este permiso. */
   permiso?: Permiso;
+  /** Si se indica, el ítem solo aparece en los clientes que tienen prendida esta funcionalidad. */
+  funcionalidad?: Funcionalidad;
 }
 
 /**

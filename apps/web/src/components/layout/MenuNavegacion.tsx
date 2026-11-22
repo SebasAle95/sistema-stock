@@ -7,6 +7,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ListSubheader from '@mui/material/ListSubheader';
 import Toolbar from '@mui/material/Toolbar';
+import { tieneFuncionalidad } from '@stock/shared';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { navegacionAdministracion, navegacionPrincipal, type ItemNavegacion } from '@/config/navegacion';
@@ -19,7 +20,8 @@ function coincide(rutaActual: string, destino: string): boolean {
 export function MenuNavegacion({ alNavegar }: { alNavegar?: () => void }) {
   const rutaActual = usePathname();
   const { tienePermiso } = useSesion();
-  const visible = (item: ItemNavegacion) => !item.permiso || tienePermiso(item.permiso);
+  const visible = (item: ItemNavegacion) =>
+    (!item.permiso || tienePermiso(item.permiso)) && (!item.funcionalidad || tieneFuncionalidad(item.funcionalidad));
   const principal = navegacionPrincipal.filter(visible);
   const administracion = navegacionAdministracion.filter(visible);
 

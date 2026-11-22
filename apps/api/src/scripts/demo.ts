@@ -12,6 +12,8 @@
  * - los códigos de barras que empiezan con "20" (rango reservado para uso interno:
  *   nunca coinciden con productos reales) y los productos de ejemplo sin código.
  */
+// Primero: carga el .env (con CLIENTE) antes de que @stock/shared elija el cliente.
+import '../config/env';
 import {
   hoyEnNegocio,
   MEDIO_EFECTIVO,
@@ -157,6 +159,9 @@ async function insertarEnTandas<T>(insertar: (filas: T[]) => Promise<unknown>, f
 // ---------------------------------------------------------------------------
 
 async function cargar() {
+  if (negocio.id !== 'la-frontera') {
+    throw new Error(`Este ejemplo es de la cantina de La Frontera: todavía no hay datos de ejemplo para "${negocio.nombre}".`);
+  }
   const db = obtenerDb();
   const existentes = await db
     .select({ id: usuarios.id })

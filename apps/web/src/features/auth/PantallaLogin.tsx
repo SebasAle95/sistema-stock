@@ -14,18 +14,19 @@ import Image from 'next/image';
 import type { ReactNode } from 'react';
 
 // Tipado como la interfaz para que compile también en un negocio sin logo.
-const { logo, tema }: ConfigNegocio = negocio;
+const { logo, tema, fondoLogin, lema }: ConfigNegocio = negocio;
 const { primario, secundario } = tema;
 
 /**
  * Fondo de la pantalla, armado con los colores del negocio. Son varias capas
  * apiladas: la primera de la lista queda adelante y la última, atrás.
- * Las líneas de la cancha están en public/fondo-cancha.svg.
+ * La imagen (por ejemplo, las líneas de la cancha de La Frontera) es opcional y
+ * sale de la configuración del cliente.
  */
 const fondo = [
   `radial-gradient(ellipse at 10% 12%, ${alpha(secundario, 0.4)}, transparent 50%)`,
   `radial-gradient(ellipse at 92% 92%, ${alpha(lighten(primario, 0.4), 0.45)}, transparent 55%)`,
-  'url(/fondo-cancha.svg) center / cover no-repeat',
+  ...(fondoLogin ? [`url(${fondoLogin}) center / cover no-repeat`] : []),
   `linear-gradient(160deg, ${darken(primario, 0.6)} 0%, ${primario} 55%, ${darken(primario, 0.4)} 100%)`,
 ].join(', ');
 
@@ -131,16 +132,18 @@ function Marca() {
         >
           {negocio.nombre}
         </Typography>
-        <Typography
-          sx={{
-            display: { xs: 'none', md: 'block' },
-            mt: 1,
-            fontSize: { md: '1.05rem', lg: '1.25rem' },
-            color: lighten(secundario, 0.3),
-          }}
-        >
-          Ventas, stock y caja en un solo lugar
-        </Typography>
+        {lema && (
+          <Typography
+            sx={{
+              display: { xs: 'none', md: 'block' },
+              mt: 1,
+              fontSize: { md: '1.05rem', lg: '1.25rem' },
+              color: lighten(secundario, 0.3),
+            }}
+          >
+            {lema}
+          </Typography>
+        )}
       </Box>
     </Stack>
   );

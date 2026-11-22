@@ -5,6 +5,12 @@ import type { NextConfig } from 'next';
 const API_URL = process.env.API_URL ?? 'http://localhost:4100';
 
 /**
+ * Cliente para el que se compila (logo, colores, medios de pago, funcionalidades).
+ * Ver packages/shared/src/config/clientes/. Sin la variable, es La Frontera.
+ */
+const CLIENTE = process.env.CLIENTE || 'la-frontera';
+
+/**
  * La imagen de Docker (apps/web/Dockerfile) compila con NEXT_STANDALONE=1: Next deja en
  * `.next/standalone` un servidor con solo las dependencias que usa. La raíz del rastreo es la
  * del repositorio, porque @stock/shared y node_modules están ahí (npm workspaces). El build
@@ -21,6 +27,9 @@ const nextConfig: NextConfig = {
 
   // @stock/shared se publica como código TypeScript: Next lo compila junto con la app.
   transpilePackages: ['@stock/shared'],
+
+  // Queda fijo en el código compilado (servidor y navegador): cada build es de un solo cliente.
+  env: { CLIENTE },
 
   /**
    * La web reenvía /api/* a la API. Para el navegador, web y API son el mismo sitio:
