@@ -27,7 +27,7 @@ internet ──▶ router 80/443 ──▶ portero (HAProxy, apps01)
 
 ## 1. Antes de empezar
 
-- **RAM de apps01:** tiene 2 GB y HHSG ya usa unos 1,3. El sistema en marcha suma unos 300–400 MB, pero **compilar la imagen de Next.js puede pasar 1 GB**. Antes del primer `--build`, subir la VM a 4 GB (Proxmox → *Hardware → Memory*) o agregar 2 GB de swap:
+- **RAM de apps01:** tiene 2 GB. La primera compilación (noviembre de 2026, con HHSG corriendo) entró sin problemas con 1,3 GB disponibles. Si en algún momento la compilación se traba o el kernel mata procesos, subir la VM a 4 GB (Proxmox → *Hardware → Memory*) o agregar 2 GB de swap:
 
   ```sh
   sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
@@ -50,8 +50,8 @@ El router no se toca: 80 y 443 ya van al portero.
 
 ```sh
 sudo mkdir -p /opt/stock && sudo chown "$USER" /opt/stock
-# Repo privado: deploy key de solo lectura (GitHub → Settings → Deploy keys), sin permiso de escritura.
-git clone --branch production git@github.com:SebasAle95/sistema-stock.git /opt/stock
+# El repo es público: se clona por HTTPS, sin claves en el servidor.
+git clone --branch production https://github.com/SebasAle95/sistema-stock.git /opt/stock
 cd /opt/stock
 cp deploy/env.ejemplo .env && chmod 600 .env
 nano .env    # DATABASE_URL (Supabase → Connect → Session pooler)
